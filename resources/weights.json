@@ -1,0 +1,41 @@
+{
+        "last_levels": {
+            "1": [[0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                  {"cluster_selection_method": "eom",
+                   "min_cluster_size": 2,
+                   "min_samples": 2}]},
+
+        "person": {
+            "1": [[0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+                  {"cluster_selection_method": "eom",
+                   "min_cluster_size": 3,
+                   "min_samples": 2}]},
+
+        "place": {
+            "1": [[0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                  {"min_cluster_size": 2,
+                   "min_samples": 2,
+                   "allow_single_cluster": true,
+                   "cluster_selection_epsilon": 1,
+                   "cluster_selection_method": "eom"}]},
+
+        "time": {
+            "1": [[0, 0, 0, 0, 0, 1, 0, 0, 1, 0],
+                  {"min_cluster_size": 2,
+                   "min_samples": 2,
+                   "allow_single_cluster": true,
+                   "cluster_selection_epsilon": 1.5,
+                   "cluster_selection_method": "eom"}],
+            "2": [[0, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+                  {"min_cluster_size": 2,
+                   "min_samples": 2,
+                   "allow_single_cluster": true,
+                   "cluster_selection_epsilon": 1,
+                   "cluster_selection_method": "eom"}],
+            "3": [[0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+                  {"min_cluster_size": 2,
+                   "min_samples": 2,
+                   "allow_single_cluster": true,
+                   "cluster_selection_epsilon": 0.5,
+                   "cluster_selection_method": "eom"}]}
+    }

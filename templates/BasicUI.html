@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Hierarchical News Events</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis-network.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="/static/BasicUI.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <link rel="shortcut icon" href="#">
+
+    <div id="modalNews" class="modal">
+        <h3 style="text-align: center; padding-right: 10px;" id = 'modalNewsHeader'></h3>
+        <div id="modalNewsContent"></div>
+        <span class="close_news">&times;</span>
+    </div>
+
+    <div id="modalSettings" class="modal">
+        <h3 style="text-align: center; padding-right: 10px;" id = 'modalSettingsHeader'> Entity Settings</h3>
+        <div id="modalSettingsContent">
+          <strong>Time & Place weight &nbsp&nbsp&nbsp: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</strong><input type="range" min="0" max="1" step = 0.1 value="0" class="slider" id="myRange1"><span id="demo1"></span>
+            <br>
+          <strong>Content weight &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: &nbsp</strong><input type="range" min="0" max="1" step = 0.1 value="1" class="slider" id="myRange2" style="margin-left: 40px;"><span id="demo2"></span>
+            <br>
+<!--          <strong>Time &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp:&nbsp</strong><input type="range" min="0" max="1" step = 0.1 value="0.5" class="slider" id="myRange3"><span id="demo3"></span>-->
+        </div>
+        <div id="entity_names">
+        <strong>&nbsp Entity order : &nbsp</strong> <ul class="draggable-list" id="draggable-list"></ul>
+        </div>
+
+        <div id = "content_numbers">
+            <div id="content_depth" class="content_depth">
+                Content depth :&nbsp<input type="number" min="1" max="5" value="4" id="content_depth_number">
+            </div>
+            <div id="content_capture" class="content_capture">
+                Content capture :&nbsp<input type="number" min="0.25" max="5" value="1" step = "0.25" id="content_capture_number">
+            </div>
+            <div id="hierarchy_display">
+                Hierarchical display :&nbsp<input type="checkbox" id="hierarchy_display_checkbox" checked>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <button type="button" class = "button_modal" onclick= "restoreDefaults()"><strong>Restore Defaults</strong></button>
+            <button type="button" class = "button_modal" onclick= "saveAndgenerateHierarchy()"><strong>Save & Generate Hierarchy</strong></button>
+            <button type="button" class = "button_modal" onclick= "saveSettings()"><strong>Save</strong></button>
+        </footer>
+
+
+        <span class="close_settings">&times;</span>
+    </div>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="/static/BasicUI.js"></script>
+</head>
+
+<header id="mainHeader">
+    <h1 style="padding-left: 5px;">
+    <i class="bi bi-diagram-3-fill" style="color:FireBrick" ></i>
+    WEHONA
+    <span style = "display: inline-block; font-size : 15px;">(Weighted Entity Hierarchy of News Articles)</span>
+
+        <input type="text" placeholder="Search.." id="search_node" onkeydown="key_down(event)">
+        <button type="submit" class = "search_button" onclick= "search_focus_node()"><i class="bi bi-search"></i></button>
+
+
+
+
+        <div id="checkboxId" class="checkboxClass">
+<!--            <div id="time_div" class="entity_div">-->
+<!--                Time-->
+<!--            </div>-->
+<!--            <div id="content_div" class="entity_div">-->
+<!--                Content-->
+<!--            </div>-->
+        </div>
+        <button type="button" class = "button" onclick= "generateHierarchy()"><strong>Generate Hierarchy</strong></button>
+
+<!--    <span style = "display: inline-block; font-size : 15px; margin-left: 210px;">(Advanced)</span>-->
+    <i class="bi bi-gear-fill" id = 'settings' onclick= "openSettings()"></i>
+    </h1>
+</header>
+
+
+
+<body onload="displayTree()">
+
+<div id="hierarchicalStructure"></div>
+
+<div id="displayInfo">
+
+    <div id="eventRepresentation">
+        <div style="margin-bottom: 30px; font-size: 20px;"><strong>Event Representation</strong></div>
+        <br>
+        <div style="margin-bottom: 30px;"><strong>What <i class="bi bi-question-octagon"></i> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: </strong>
+            <div class="dropdownWithoutEffect"> <strong><div id="what_content">Title</div></strong></div>
+        </div>
+        <br>
+        <div style="margin-bottom: 30px;"><strong>Who <i class="bi bi-person"></i> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp:</strong>
+            <strong><div class="dropdown" id = "first_who_content">Person</div></strong>
+        </div>
+        <br>
+        <div style="margin-bottom: 30px;"><strong>When <i class="bi bi-calendar"></i> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp:</strong>
+            <strong><div class="dropdown" id = "first_when_content">Time</div></strong>
+        </div>
+        <br>
+        <div style="margin-bottom: 30px;"><strong>Where <i class="bi bi-shop"></i> &nbsp&nbsp&nbsp&nbsp&nbsp:</strong>
+            <strong><div class="dropdown" id = "first_where_place_content">Place</div></strong>
+<!--            <strong><div class="dropdown" id = "first_where_country_content">Country</div></strong>-->
+<!--            <strong><div class="dropdown" id = "first_where_city_content">City</div></strong>-->
+        </div>
+        <br>
+        <div style="margin-bottom: 30px;"><strong>Summary <i class="bi bi-chat-text"></i> :</strong></div>
+    </div>
+
+    <div id="newsArticles">
+        <div style = "font-size: 20px;"><strong>News Articles</strong></div>
+        <div id="newsArticlesText"></div>
+    </div>
+
+</div>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+<!--<div class="tab">-->
+<!--<button class="tablinks_place" id = "tablinks_place_id" onclick="openEntitySettings(event, 'place_weights')">Place</button>-->
+<!--<button class="tablinks_time" onclick="openEntitySettings(event, 'time_weights')">Time</button>-->
+<!--<button class="tablinks_person" onclick="openEntitySettings(event, 'person_weights')">Person</button>-->
+<!--</div>-->
+
+<!--<div id="place_weights" class="tabcontent">-->
+
+<!--<div class="weights_formula">-->
+<!--    Place Embd = (Continent Weight * Continent Embd) + (Country Weight * Country Embd) + (City Weight * City Embd)-->
+<!--    <br>-->
+<!--    Document Embd = (Place Weight * Place Embd) + (Content Weight * Content Embd)-->
+<!--</div>-->
+
+<!--<div class="weights_content">-->
+<!--<strong>Level 1 : &nbsp</strong>-->
+<!--    Continent :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="continentRange_level1">-->
+<!--    Country :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="countryRange_level1">-->
+<!--    City :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="cityRange_level1">-->
+<!--    Place :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="place_weight_level1">-->
+<!--    Content :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider " id="place_content_weight_level1">-->
+<!--    Cluster :&nbsp<input type="text" class="slider" id="HDBSCANRange_place_level1" style="width : 12%;">-->
+<!--<br>-->
+<!--<strong>Level 2 : &nbsp</strong>-->
+<!--    Continent :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="continentRange_level2">-->
+<!--    Country :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="countryRange_level2">-->
+<!--    City :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="cityRange_level2">-->
+<!--    Place :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="place_weight_level2">-->
+<!--    Content :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider " id="place_content_weight_level2">-->
+<!--    Cluster :&nbsp<input type="text" class="slider" id="HDBSCANRange_place_level2" style="width : 12%;">-->
+<!--<br>-->
+<!--<strong>Level 3 : &nbsp</strong>-->
+<!--    Continent :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="continentRange_level3">-->
+<!--    Country :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="countryRange_level3">-->
+<!--    City :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="cityRange_level3">-->
+<!--    Place :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="place_weight_level3">-->
+<!--    Content :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider " id="place_content_weight_level3">-->
+<!--    Cluster :&nbsp<input type="text" class="slider" id="HDBSCANRange_place_level3" style="width : 12%;">-->
+<!--</div>-->
+<!--</div>-->
+
+
+<!--<div id="time_weights" class="tabcontent">-->
+
+<!--<div class="weights_formula">-->
+<!--    Time Embd = (Year Weight * Year Embd) + (Month Weight * Month Embd) + (Day Weight * Day Embd)-->
+<!--    <br>-->
+<!--    Document Embd = (Time Weight * Time Embd) + (Content Weight * Content Embd)-->
+<!--</div>-->
+<!--<div class="weights_content">-->
+<!--<strong>Level 1 : &nbsp</strong>-->
+<!--Year :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="yearRange_level1">-->
+<!--Month :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="monthRange_level1">-->
+<!--Day :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="dayRange_level1">-->
+<!--Time :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="time_weight_level1">-->
+<!--Content :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider " id="time_content_weight_level1">-->
+<!--Cluster :&nbsp<input type="text" class="slider" id="HDBSCANRange_time_level1" style="width : 12%;">-->
+<!--<br>-->
+<!--<strong>Level 2 : &nbsp</strong>-->
+<!--Year :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="yearRange_level2">-->
+<!--Month :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="monthRange_level2">-->
+<!--Day :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="dayRange_level2">-->
+<!--Time :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="time_weight_level2">-->
+<!--Content :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider " id="time_content_weight_level2">-->
+<!--Cluster :&nbsp<input type="text" class="slider" id="HDBSCANRange_time_level2" style="width : 12%;">-->
+<!--<br>-->
+<!--<strong>Level 3 : &nbsp</strong>-->
+<!--Year :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="yearRange_level3">-->
+<!--Month :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="monthRange_level3">-->
+<!--Day :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider " id="dayRange_level3">-->
+<!--Time :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="time_weight_level3">-->
+<!--Content :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider " id="time_content_weight_level3">-->
+<!--Cluster :&nbsp<input type="text" class="slider" id="HDBSCANRange_time_level3" style="width : 12%;">-->
+<!--</div>-->
+<!--</div>-->
+
+<!--<div id="person_weights" class="tabcontent">-->
+
+<!--<div class="weights_formula">-->
+<!--    Document Embd = (Person Weight * Person Embd) + (Content Weight * Content Embd)-->
+<!--</div>-->
+
+<!--<div class="weights_content">-->
+<!--<strong>Level 1 : &nbsp</strong>-->
+<!--Person :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="person_weight_level1">-->
+<!--Content :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider " id="person_content_weight_level1">-->
+<!--Cluster :&nbsp<input type="text" class="slider HDBSCAN" id="HDBSCANRange_person_level1" style="width : 12%;">-->
+<!--<br>-->
+<!--<strong>Level 2 : &nbsp</strong>-->
+<!--Person :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="person_weight_level2">-->
+<!--Content :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider " id="person_content_weight_level2">-->
+<!--Cluster :&nbsp<input type="text" class="slider HDBSCAN" id="HDBSCANRange_person_level2" style="width : 12%;">-->
+<!--<br>-->
+<!--<strong>Level 3 : &nbsp</strong>-->
+<!--Person :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider" id="person_weight_level3">-->
+<!--Content :&nbsp<input type="number" min="0" max="1" value="0.5" step = 0.1 class="slider " id="person_content_weight_level3">-->
+<!--Cluster :&nbsp<input type="text" class="slider HDBSCAN" id="HDBSCANRange_person_level3" style="width : 12%;">-->
+<!--</div>-->
+<!--</div>-->
