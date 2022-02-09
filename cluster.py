@@ -74,6 +74,8 @@ def generateHierarchy(split_entity_list_fromUI, content_depth_needed, content_ca
             child_count, cluster_info_for_not_clustered_data_dict, entity_naming_dict, content_depth_now,
             time_place_weight, content_weight)
 
+    storingAndLoading.storeUseFlat({"useFlat": True})
+
     nodes_edges_main['docs_dict'], nodes_edges_main['text_dict'] = docs_dict, text_dict
     nodes_edges_main['possible_content_depth'] = possible_content_depth
 

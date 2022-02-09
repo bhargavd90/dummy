@@ -91,3 +91,13 @@ def store_cluster_name_dict(cluster_name_dict):
 def load_cluster_name_dict():
     with open('results/search.json', 'rb') as fp:
         return json.load(fp)
+
+
+def loadUseFlat():
+    with open('resources/useFlat.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def storeUseFlat(useFlat):
+    with open("resources/useFlat.json", "w") as outfile:
+        json.dump(useFlat, outfile, cls=NumpyEncoder)

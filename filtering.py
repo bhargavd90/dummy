@@ -121,7 +121,7 @@ def filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict, ratio_limit):
                                                       "border": "black"}
                 nodes_dict_updated[index]["colorDict_id"] = colorDict_id
                 colorDict_id = colorDict_id + 1
-                if colorDict_id == 9:
+                if colorDict_id == 11:
                     colorDict_id = 1
             else:
                 nodes_dict_updated[index]["color"] = {

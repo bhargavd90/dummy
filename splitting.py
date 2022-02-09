@@ -5,12 +5,17 @@ import embeddings
 import helper
 from hdbscan import flat
 import numpy as np
+import storingAndLoading
 
 
 def get_cluster_labels(weighted_embeddings, hdbscan_dict, is_first):
     clusterer = hdbscan.HDBSCAN(**hdbscan_dict)
     clusterer.fit(weighted_embeddings)
-    if is_first and len(np.unique(clusterer.labels_)) > 10:
+    if 11 > len(np.unique(clusterer.labels_)) > 1:
+        storingAndLoading.storeUseFlat({"useFlat": False})
+    useFlat = storingAndLoading.loadUseFlat()
+    if useFlat["useFlat"] and len(np.unique(clusterer.labels_)) > 10:
+        storingAndLoading.storeUseFlat({"useFlat": False})
         hdbscan_dict["X"] = weighted_embeddings
         hdbscan_dict["n_clusters"] = 9
         clusterer = flat.HDBSCAN_flat(**hdbscan_dict)
