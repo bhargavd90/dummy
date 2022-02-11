@@ -78,12 +78,13 @@ def filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict, ratio_limit):
         if edges_dict_from.count(from_edge) == 1:
             edges_filter_list_2.append(from_edge)
     nodes_to_remove = edges_filter_list_2
-    if 0 in edges_filter_list_1:
-        nodes_to_remove = nodes_to_remove + list(
-            set(range(edges_filter_list_1[len(edges_filter_list_1) - 1])[1:]) - set(edges_filter_list_1))
-    else:
-        nodes_to_remove = nodes_to_remove + [0] + list(
-            set(range(edges_filter_list_1[len(edges_filter_list_1) - 1])[1:]) - set(edges_filter_list_1))
+    if len(edges_filter_list_1) > 0:
+        if 0 in edges_filter_list_1:
+            nodes_to_remove = nodes_to_remove + list(
+                set(range(edges_filter_list_1[len(edges_filter_list_1) - 1])[1:]) - set(edges_filter_list_1))
+        else:
+            nodes_to_remove = nodes_to_remove + [0] + list(
+                set(range(edges_filter_list_1[len(edges_filter_list_1) - 1])[1:]) - set(edges_filter_list_1))
     nodes_dict_updated = list(np.delete(nodes_dict, nodes_to_remove))
     nodes_edges_main['edges'] = edges_dict_updated
 
@@ -110,6 +111,11 @@ def filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict, ratio_limit):
                 colorDict_id_from_node = find_node_by_id(nodes_dict_updated, e_from)
             except:
                 colorDict_id_from_node = 0
+
+            # patch work
+            if colorDict_id_from_node is None:
+                nodes_dict_updated.pop(1)
+                break
 
             level_no = nodes_dict_updated[index]["level"]
 
