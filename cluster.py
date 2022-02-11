@@ -30,8 +30,9 @@ def storeHierarchyData():
                                                                           Content_Sentences, Day_Sentences,
                                                                           Month_Sentences,
                                                                           Year_Sentences, umap_flag, umap_dict)
-    docs_dict, title_dict, text_dict, ner_dict, pos_dict = helper.get_doc_ids_text_ner_from_cluster(news_publisher_title, title,
-                                                                                          news_content_WO_preprocssing)
+    docs_dict, title_dict, text_dict, ner_dict, pos_dict = helper.get_doc_ids_text_ner_from_cluster(
+        news_publisher_title, title,
+        news_content_WO_preprocssing)
 
     storingAndLoading.storeData(Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences,
                                 Year_Sentences, Date_Sentences,
@@ -40,7 +41,7 @@ def storeHierarchyData():
 
 
 def generateHierarchy(split_entity_list_fromUI, content_depth_needed, content_capture_needed, time_place_weight,
-                      content_weight):
+                      content_weight, topic_interest_keyword, from_date_keyword, to_date_keyword):
     cluster_info_for_not_clustered_data_dict = {}
     Nodes_dict = {}
     entity_naming_dict = {}
@@ -50,14 +51,16 @@ def generateHierarchy(split_entity_list_fromUI, content_depth_needed, content_ca
     Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, \
     Date_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length = storingAndLoading.loadData()
 
-    weights, possible_content_depth = helper.create_content_weights(news_content_length, weights,
+    parent_cluster_main_phase_1 = Node([x for x in range(news_content_length)])
+    clusters_to_furthur_split = helper.fetchDocumentstoSplit(text_dict, Date_Sentences, topic_interest_keyword, from_date_keyword, to_date_keyword, news_content_length)
+    if not clusters_to_furthur_split:
+        raise Exception("Unable to find documents for the given filters")
+
+    weights, possible_content_depth = helper.create_content_weights(len(clusters_to_furthur_split), weights,
                                                                     content_capture_needed)
 
     if content_depth_needed > possible_content_depth:
         content_depth_needed = possible_content_depth
-
-    parent_cluster_main_phase_1 = Node([x for x in range(news_content_length)])
-    clusters_to_furthur_split = [x for x in range(news_content_length)]
 
     split_entity_list = helper.getSplitEntityList(split_entity_list_fromUI, content_depth_needed)
 
@@ -81,7 +84,8 @@ def generateHierarchy(split_entity_list_fromUI, content_depth_needed, content_ca
 
     nodes_edges_main = filtering.eventRepresentation(nodes_edges_main, title_dict, Place_Sentences, Person_Sentences,
                                                      Date_Sentences, ratio_limit)
-    nodes_edges_main, cluster_name_dict = filtering.filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict, ratio_limit)
+    nodes_edges_main, cluster_name_dict = filtering.filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict,
+                                                                       ratio_limit)
     storingAndLoading.store_cluster_name_dict(cluster_name_dict)
     storingAndLoading.storeNews(nodes_edges_main)
 
@@ -92,4 +96,3 @@ def search_node(search_term):
     highest = process.extractOne(search_term, options)
     cluster_label = {k for k, v in cluster_name_dict.items() if v == highest[0]}
     return "".join(cluster_label).replace("cluster_", "")
-

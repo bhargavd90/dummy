@@ -18,25 +18,40 @@
     <div id="modalSettings" class="modal">
         <h3 style="text-align: center; padding-right: 10px;" id = 'modalSettingsHeader'> Entity Settings</h3>
         <div id="modalSettingsContent">
-          <strong>Time & Place weight &nbsp&nbsp&nbsp: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</strong><input type="range" min="0" max="1" step = 0.1 value="0" class="slider" id="myRange1"><span id="demo1"></span>
+          <strong>Time & Place Weight &nbsp&nbsp&nbsp: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</strong><input type="range" min="0" max="1" step = 0.1 value="0" class="slider" id="myRange1"><span id="demo1"></span>
             <br>
-          <strong>Content weight &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: &nbsp</strong><input type="range" min="0" max="1" step = 0.1 value="1" class="slider" id="myRange2" style="margin-left: 40px;"><span id="demo2"></span>
-            <br>
+          <strong>Content Weight &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: &nbsp</strong><input type="range" min="0" max="1" step = 0.1 value="1" class="slider" id="myRange2" style="margin-left: 40px;"><span id="demo2"></span>
 <!--          <strong>Time &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp:&nbsp</strong><input type="range" min="0" max="1" step = 0.1 value="0.5" class="slider" id="myRange3"><span id="demo3"></span>-->
         </div>
         <div id="entity_names">
-        <strong>&nbsp Entity order : &nbsp</strong> <ul class="draggable-list" id="draggable-list"></ul>
+        <strong>&nbsp Entity Order : &nbsp</strong> <ul class="draggable-list" id="draggable-list"></ul>
         </div>
 
         <div id = "content_numbers">
-            <div id="content_depth" class="content_depth">
-                Content depth :&nbsp<input type="number" min="1" max="5" value="4" id="content_depth_number">
+<!--            <div id="content_depth" class="content_depth">-->
+<!--                Content depth :&nbsp<input type="number" min="1" max="5" value="4" id="content_depth_number">-->
+<!--            </div>-->
+<!--            <div id="content_capture" class="content_capture">-->
+<!--                Content capture :&nbsp<input type="number" min="0.25" max="5" value="1" step = "0.25" id="content_capture_number">-->
+                <strong>Content Capture &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</strong> <input type="range" min="0.25" max="5" step = 0.25 value="1" class="slider" id="content_capture_number">
+<!--            </div>-->
+<!--            <div id="hierarchy_display">-->
+<!--                Hierarchical display :&nbsp<input type="checkbox" id="hierarchy_display_checkbox" checked>-->
+<!--            </div>-->
+        </div>
+
+
+        <div id = "filtering">
+            <div id="topic_interest" class="topic_interest">
+                <strong>Topic Of Interest &nbsp&nbsp: &nbsp&nbsp</strong><input type="text" placeholder="Topic / Person / Place ..." title="All documents will be displayed if the field is empty" id="topic_interest_keyword">
             </div>
-            <div id="content_capture" class="content_capture">
-                Content capture :&nbsp<input type="number" min="0.25" max="5" value="1" step = "0.25" id="content_capture_number">
+            <br>
+            <div id="from_date" class="from_date">
+                <strong>From Date &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: &nbsp&nbsp</strong><input type="date" id="from_date_keyword">
             </div>
-            <div id="hierarchy_display">
-                Hierarchical display :&nbsp<input type="checkbox" id="hierarchy_display_checkbox" checked>
+            <br>
+            <div id="to_date" class="to_date">
+                <strong>To Date &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: &nbsp&nbsp</strong><input type="date" id="to_date_keyword">
             </div>
         </div>
 
@@ -60,22 +75,20 @@
     <h1 style="padding-left: 5px;">
     <i class="bi bi-diagram-3-fill" style="color:FireBrick" ></i>
     WEHONA
-    <span style = "display: inline-block; font-size : 15px;">(Weighted Entity Hierarchy of News Articles)</span>
+<!--    <span style = "display: inline-block; font-size : 15px;">(Weighted Entity Hierarchy of News Articles)</span>-->
+        <div id = "content_depth">
+                <strong>Content Coarseness &nbsp&nbsp&nbsp&nbsp: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</strong> <input type="range" min="1" max="10" step = 1 value="4" class="slider" id="content_depth_number" onchange="generateHierarchy()">
+        </div>
 
         <input type="text" placeholder="Search.." id="search_node" onkeydown="key_down(event)">
         <button type="submit" class = "search_button" onclick= "search_focus_node()"><i class="bi bi-search"></i></button>
 
-
-
-
-        <div id="checkboxId" class="checkboxClass">
-<!--            <div id="time_div" class="entity_div">-->
-<!--                Time-->
-<!--            </div>-->
-<!--            <div id="content_div" class="entity_div">-->
-<!--                Content-->
-<!--            </div>-->
+<!--        <div id="checkboxId" class="checkboxClass">-->
+<!--        </div>-->
+        <div id="hierarchy_display">
+                Hierarchical Display :&nbsp<input type="checkbox" id="hierarchy_display_checkbox" onchange="displayTree()"checked>
         </div>
+
         <button type="button" class = "button" onclick= "generateHierarchy()"><strong>Generate Hierarchy</strong></button>
 
 <!--    <span style = "display: inline-block; font-size : 15px; margin-left: 210px;">(Advanced)</span>-->

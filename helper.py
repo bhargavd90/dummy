@@ -5,6 +5,7 @@ from anytree import LevelOrderGroupIter
 from scipy.stats import halfnorm
 import numpy as np
 import math
+from datetime import datetime
 
 nlp = spacy.load('en_core_web_md')
 
@@ -113,12 +114,12 @@ def getSplitEntityList(split_entity_list_fromUI, content_depth_needed):
     return split_entity_list_fromUI
 
 
-def create_content_weights(news_content_length, weights, content_capture_needed):
+def create_content_weights(no_of_docs, weights, content_capture_needed):
     mean = 0
 
     weights_parameters_list = []
     content_depth_needed = 100
-    mul = news_content_length / 10
+    mul = no_of_docs / 10
     data = np.arange(0, content_depth_needed, 1)
     probdf = halfnorm.pdf(data, loc=mean, scale=content_capture_needed)
     div = (math.ceil(probdf[0] * 1000))
@@ -143,3 +144,31 @@ def create_content_weights(news_content_length, weights, content_capture_needed)
     weights["content"] = content_dict
     print("Setting content weights ... ", weights_parameters_list)
     return weights, len(weights_parameters_list)
+
+
+def fetchDocumentstoSplit(text_dict, Date_Sentences, topic_interest_keyword, from_date_keyword, to_date_keyword,
+                          news_content_length):
+    clusters_to_split_by_key = []
+    clusters_to_split_by_date = []
+    if topic_interest_keyword.strip() == "":
+        clusters_to_split_by_key = [x for x in range(news_content_length)]
+    else:
+        topic_interest_keyword = " " + topic_interest_keyword.lower().strip() + " "
+        for key, value in text_dict.items():
+            if value.lower().count(topic_interest_keyword) > 0:
+                clusters_to_split_by_key.append(key)
+    if from_date_keyword == "":
+        from_date_keyword = "0001-01-01 00:00:00"
+    else:
+        from_date_keyword = from_date_keyword + " 00:00:00"
+    if to_date_keyword == "":
+        to_date_keyword = "9999-01-01 00:00:00"
+    else:
+        to_date_keyword = to_date_keyword + " 00:00:00"
+    from_date = datetime.strptime(from_date_keyword, "%Y-%m-%d %H:%M:%S")
+    to_date = datetime.strptime(to_date_keyword, "%Y-%m-%d %H:%M:%S")
+    for index, date in enumerate(Date_Sentences):
+        if from_date <= date <= to_date:
+            clusters_to_split_by_date.append(index)
+    clusters_to_split = list(set(clusters_to_split_by_key).intersection(clusters_to_split_by_date))
+    return clusters_to_split

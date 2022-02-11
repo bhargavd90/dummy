@@ -9,7 +9,6 @@ var place_dict;
 var person_dict;
 var date_dict;
 var possible_content_depth;
-var hierarchical_display = true;
 
 var modal_news = document.getElementById('modalNews');
 var modal_news_content = document.getElementById('modalNewsContent');
@@ -154,7 +153,7 @@ fetch('/results/news.json').then(response => {
   date_dict = data["Date_dict"]
   possible_content_depth = data["possible_content_depth"]
 
-  document.getElementById("content_depth_number").max = possible_content_depth;
+//  document.getElementById("content_depth_number").max = possible_content_depth;
 
 
   nodes = new vis.DataSet(n);
@@ -185,7 +184,7 @@ fetch('/results/news.json').then(response => {
 
   layout: {
   hierarchical: {
-   enabled:hierarchical_display,
+   enabled: $('#hierarchy_display_checkbox').is(':checked'),
     direction: 'UD',
     nodeSpacing: 100,
     sortMethod : 'directed',
@@ -235,27 +234,22 @@ close_settings.onclick = function() {
     document.getElementById('mainHeader').style.filter = "blur(0)";
     document.body.style.backgroundColor = "white";
     set_entity_names();
-    if(hierarchical_display != $('#hierarchy_display_checkbox').is(':checked')){
-        hierarchical_display = $('#hierarchy_display_checkbox').is(':checked');
-        reset_event_representation_news_content();
-        displayTree();
-    }
 }
 
 function set_entity_names(){
 
-var entity_names_div = document.getElementById("checkboxId")
-entity_names_div.textContent = "";
-var checkedValues = $("li input[type=checkbox]:checked").map(function () {
-        return $(this).attr("id");
-    });
-
-for (z = 0; z < checkedValues.length; z++){
-    var entity_div = document.createElement("div");
-    entity_div.className = "entity_div";
-    entity_div.textContent = checkedValues[z];
-    entity_names_div.appendChild(entity_div);
-    }
+//var entity_names_div = document.getElementById("checkboxId")
+//entity_names_div.textContent = "";
+//var checkedValues = $("li input[type=checkbox]:checked").map(function () {
+//        return $(this).attr("id");
+//    });
+//
+//for (z = 0; z < checkedValues.length; z++){
+//    var entity_div = document.createElement("div");
+//    entity_div.className = "entity_div";
+//    entity_div.textContent = checkedValues[z];
+//    entity_names_div.appendChild(entity_div);
+//    }
 }
 
 function openSettings(){
@@ -282,9 +276,13 @@ var content_depth_needed = '&content_depth_needed=' + document.getElementById("c
 var content_capture_needed = '&content_capture_needed=' + document.getElementById("content_capture_number").value;
 var time_place_weight = '&time_place_weight=' + document.getElementById("demo1").innerText;
 var content_weight = '&content_weight=' + document.getElementById("demo2").innerText;
+var topic_interest_keyword = '&topic_interest_keyword=' + document.getElementById("topic_interest_keyword").value;
+var from_date_keyword = '&from_date_keyword=' + document.getElementById("from_date_keyword").value;
+var to_date_keyword = '&to_date_keyword=' + document.getElementById("to_date_keyword").value;
 setProgress();
 $.ajax({
-url: python_url + split_entity_string + content_depth_needed + content_capture_needed + time_place_weight + content_weight,
+url: python_url + split_entity_string + content_depth_needed + content_capture_needed + time_place_weight
+    + content_weight +topic_interest_keyword + from_date_keyword + to_date_keyword,
 type: 'GET',
 success: function(data){
     if(data == 'success'){
@@ -403,7 +401,6 @@ swal({
 }
 
 function saveAndgenerateHierarchy(){
-hierarchical_display = $('#hierarchy_display_checkbox').is(':checked');
 saveSettings();
 set_entity_names();
 generateHierarchy();
@@ -424,11 +421,6 @@ function saveSettings(){
     document.getElementById('mainHeader').style.filter = "blur(0)";
     document.body.style.backgroundColor = "white";
     set_entity_names();
-    if(hierarchical_display != $('#hierarchy_display_checkbox').is(':checked')){
-        hierarchical_display = $('#hierarchy_display_checkbox').is(':checked');
-        zreset_event_representation_news_content();
-        displayTree();
-    }
 }
 
 
@@ -453,7 +445,7 @@ function createList() {
     .forEach((entity, index) => {
       const listItem = document.createElement('li');
       listItem.setAttribute('data-index', index);
-      if(entity == "Time" || entity == "Content"){
+      if(entity == "Content"){
           listItem.innerHTML = `
             <div class="draggable" draggable="true">
               <input type="checkbox" id= ${entity} name="constraint" class="entity-name" checked/>
@@ -518,7 +510,6 @@ function addEventListeners() {
     item.addEventListener('dragleave', dragLeave);
   });
 }
-
 
 
 
