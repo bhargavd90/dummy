@@ -162,9 +162,9 @@ def split_for_3_levels(cluster_embeddings_dict_full, entity_name, weights, paren
         parent_cluster_phase_1 = parent_cluster_main_phase_1
         # Level_1
         complete_weights = weights[entity_name][str(content_depth_now)][0]
-        complete_weights[6] = time_place_weight
-        complete_weights[8] = time_place_weight
-        complete_weights[9] = content_weight
+        complete_weights[5] = time_place_weight
+        complete_weights[7] = time_place_weight
+        complete_weights[8] = content_weight
         hdbscan_dict = weights[entity_name][str(content_depth_now)][1]
         cluster_data = [
             embeddings.get_cluster_embeddings_dict_per_cluster(cluster_embeddings_dict_full, clusters_to_furthur_split),

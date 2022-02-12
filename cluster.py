@@ -29,7 +29,7 @@ def storeHierarchyData():
     cluster_embeddings_dict_full = embeddings.get_cluster_embeddings_full(model_name, Place_Sentences, Person_Sentences,
                                                                           Content_Sentences, Day_Sentences,
                                                                           Month_Sentences,
-                                                                          Year_Sentences, umap_flag, umap_dict)
+                                                                          Year_Sentences, title, umap_flag, umap_dict)
     docs_dict, title_dict, text_dict, ner_dict, pos_dict = helper.get_doc_ids_text_ner_from_cluster(
         news_publisher_title, title,
         news_content_WO_preprocssing)

@@ -85,7 +85,7 @@ def get_doc_ids_text_ner_from_cluster(news_publisher_title, title, news_content)
     text_dict = {}
     ner_dict = {}
     pos_dict = {}
-    stopwords_df = pd.read_csv("datasets/sw1k.csv")
+    stopwords_df = pd.read_csv("resources/sw1k.csv")
     news_stopwords_list = stopwords_df["term"].tolist()
     for k in range(len(news_publisher_title)):
         title_dict[k] = title[k]
@@ -123,7 +123,7 @@ def create_content_weights(no_of_docs, weights, content_capture_needed):
 
     weights_parameters_list = []
     content_depth_needed = 100
-    mul = no_of_docs / 4
+    mul = no_of_docs / 10
     data = np.arange(0, content_depth_needed, 1)
     probdf = halfnorm.pdf(data, loc=mean, scale=content_capture_needed)
     div = (math.ceil(probdf[0] * 1000))
@@ -138,7 +138,7 @@ def create_content_weights(no_of_docs, weights, content_capture_needed):
 
     content_dict = {}
     for index, min_size in enumerate(weights_parameters_list):
-        content_dict[str(index + 1)] = [[0, 0, 0, 1, 1, 1, 0, 0, 0, 1],
+        content_dict[str(index + 1)] = [[0, 0, 0, 0.2, 0.8, 0, 0, 0, 1],
                                         {"min_cluster_size": min_size,
                                          "min_samples": min_size,
                                          "allow_single_cluster": False,
