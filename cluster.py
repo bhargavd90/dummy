@@ -82,7 +82,7 @@ def generateHierarchy(split_entity_list_fromUI, content_depth_needed, content_ca
     nodes_edges_main['docs_dict'], nodes_edges_main['text_dict'] = docs_dict, text_dict
     nodes_edges_main['possible_content_depth'] = possible_content_depth
 
-    nodes_edges_main = filtering.eventRepresentation(nodes_edges_main, title_dict, Place_Sentences, Person_Sentences,
+    nodes_edges_main = filtering.eventRepresentation(nodes_edges_main, title_dict, text_dict, Place_Sentences, Person_Sentences,
                                                      Date_Sentences, ratio_limit)
     nodes_edges_main, cluster_name_dict = filtering.filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict,
                                                                        ratio_limit)

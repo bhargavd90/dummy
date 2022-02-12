@@ -5,6 +5,7 @@ var cluster_dict;
 var docs_dict;
 var text_dict;
 var title_dict;
+var summary_dict;
 var place_dict;
 var person_dict;
 var date_dict;
@@ -101,8 +102,9 @@ first_where_place_content.appendChild(where_place_content);
 //first_where_city_content.appendChild(where_city_content);
 //}
 
-function addSummary(){
-
+function addSummary(params){
+summary_in_cluster = summary_dict["Summary_"+"cluster_" + params.nodes[0].toString()]
+document.getElementById('summary_content').textContent = summary_in_cluster;
 }
 
 function addNews(params){
@@ -133,6 +135,7 @@ function click(){
         addWhen(params);
         addPlace(params);
         addNews(params);
+        addSummary(params);
     }});
 }
 
@@ -148,6 +151,7 @@ fetch('/results/news.json').then(response => {
   docs_dict = data["docs_dict"]
   text_dict = data["text_dict"]
   title_dict = data["Title_dict"]
+  summary_dict = data["Summary_dict"]
   place_dict = data["Place_dict"]
   person_dict = data["Person_dict"]
   date_dict = data["Date_dict"]
@@ -383,6 +387,7 @@ document.getElementById("first_who_content").innerHTML = "Person";
 document.getElementById("first_when_content").innerHTML = "Time";
 document.getElementById("first_where_place_content").innerHTML = "Place";
 document.getElementById("newsArticlesText").innerHTML = "";
+document.getElementById('summary_content').innerHTML = "Summary"
 }
 
 

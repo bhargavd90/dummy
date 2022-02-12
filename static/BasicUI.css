@@ -263,7 +263,7 @@ margin:0.25em;
     z-index : 1;
 }
 
-.dropdownWithoutEffect {
+.dropdownWithoutEffectWhat {
   position: relative;
   display: inline-block;
   margin-left: 50px;
@@ -273,6 +273,19 @@ margin:0.25em;
   /*text-overflow: ellipsis;*/
   max-width: 520px;
 }
+
+.dropdownWithoutEffectSummary {
+  position: relative;
+  display: inline-block;
+  margin-left: 50px;
+  padding: 2px;
+  white-space: nowrap;
+  /*overflow: scroll;*/
+  /*text-overflow: ellipsis;*/
+  max-width: 520px;
+}
+
+
 
 #checkboxId {
  display : inline-block;

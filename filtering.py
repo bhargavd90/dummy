@@ -4,6 +4,11 @@ from collections import Counter
 import textwrap
 import storingAndLoading
 from fuzzywuzzy.process import dedupe
+import spacy
+import pytextrank
+
+nlp = spacy.load("en_core_web_md")
+nlp.add_pipe("textrank")
 
 
 def get_unique_list_based_on_fuzzy_matching(token_list, ratio_limit):
@@ -99,7 +104,8 @@ def filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict, ratio_limit):
         else:
             use_pos = False
 
-        cluster_name, cluster_name_search = get_cluster_words(index, cluster_no, cluster_dict, ner_dict, pos_dict, ratio_limit, use_pos)
+        cluster_name, cluster_name_search = get_cluster_words(index, cluster_no, cluster_dict, ner_dict, pos_dict,
+                                                              ratio_limit, use_pos)
         cluster_name_dict[cluster_no] = cluster_name_search
 
         nodes_dict_updated[index]["label"] = "\n".join(textwrap.wrap(cluster_name, 15))
@@ -138,33 +144,53 @@ def filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict, ratio_limit):
     return nodes_edges_main, cluster_name_dict
 
 
-def eventRepresentation(nodes_edges_main, title_dict, Place_Sentences, Person_Sentences, Date_Sentences, ratio_limit):
+def eventRepresentation(nodes_edges_main, title_dict, text_dict, Place_Sentences, Person_Sentences, Date_Sentences,
+                        ratio_limit):
     Place_dict = {}
     Person_dict = {}
     Date_dict = {}
     Title_dict = {}
+    Summary_dict = {}
     for cluster_name, cluster_ids in nodes_edges_main["cluster_dict"].items():
         Place_Sentences_list = []
         Person_Sentences_list = []
         Date_Sentences_list = []
-
+        # Title_Sentence_all = ""
+        # Summary_Sentence_all = ""
+        # Title_Sentence = ""
+        # Summary_Sentence = ""
         for index, doc_id in enumerate(cluster_ids):
             Place_Sentences_list = Place_Sentences_list + Place_Sentences[doc_id].split(",")
             Person_Sentences_list = Person_Sentences_list + Person_Sentences[doc_id].split(",")
             Date_Sentences_list.append(str(Date_Sentences[doc_id]).replace(" 00:00:00", ""))
             if index == 0:
-                Title = title_dict[doc_id]
+                Title_Sentence = title_dict[doc_id]
+            # if index < 10:
+            #     Summary_Sentence_all = Summary_Sentence_all + text_dict[doc_id] + ". "
 
-        place_words = list(filter(None, list(dict.fromkeys(sorted(Place_Sentences_list, key=Counter(Place_Sentences_list).get, reverse=True)))[0:50]))
-        person_words = list(filter(None, list(dict.fromkeys(sorted(Person_Sentences_list, key=Counter(Person_Sentences_list).get, reverse=True)))[0:50]))
-        date_words = list(filter(None, list(dict.fromkeys(sorted(Date_Sentences_list, key=Counter(Date_Sentences_list).get, reverse=True)))[0:50]))
+        place_words = list(filter(None, list(
+            dict.fromkeys(sorted(Place_Sentences_list, key=Counter(Place_Sentences_list).get, reverse=True)))[0:50]))
+        person_words = list(filter(None, list(
+            dict.fromkeys(sorted(Person_Sentences_list, key=Counter(Person_Sentences_list).get, reverse=True)))[0:50]))
+        date_words = list(filter(None, list(
+            dict.fromkeys(sorted(Date_Sentences_list, key=Counter(Date_Sentences_list).get, reverse=True)))[0:50]))
         Place_dict["Place_" + cluster_name] = get_unique_list_based_on_fuzzy_matching(place_words, ratio_limit)[0:10]
         Person_dict["Person_" + cluster_name] = get_unique_list_based_on_fuzzy_matching(person_words, ratio_limit)[0:10]
         Date_dict["Date_" + cluster_name] = get_unique_list_based_on_fuzzy_matching(date_words, ratio_limit)[0:10]
-        Title_dict["Title_" + cluster_name] = Title
+
+        # titleDoc = nlp(Title_Sentence_all.strip(". "))
+        # for title_sent in titleDoc._.textrank.summary(limit_phrases=100, limit_sentences=1):
+        #     Title_Sentence = Title_Sentence + str(title_sent) + ". "
+        # summaryDoc = nlp(Summary_Sentence_all.strip(". "))
+        # for summary_sent in summaryDoc._.textrank.summary(limit_phrases=100, limit_sentences=5):
+        #     Summary_Sentence = Summary_Sentence + str(summary_sent) + ". "
+
+        Title_dict["Title_" + cluster_name] = Title_Sentence
+        Summary_dict["Summary_" + cluster_name] = ""
 
     nodes_edges_main["Place_dict"] = Place_dict
     nodes_edges_main["Person_dict"] = Person_dict
     nodes_edges_main["Date_dict"] = Date_dict
     nodes_edges_main["Title_dict"] = Title_dict
+    nodes_edges_main["Summary_dict"] = Summary_dict
     return nodes_edges_main

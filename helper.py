@@ -6,6 +6,7 @@ from scipy.stats import halfnorm
 import numpy as np
 import math
 from datetime import datetime
+import pandas as pd
 
 nlp = spacy.load('en_core_web_md')
 
@@ -84,6 +85,8 @@ def get_doc_ids_text_ner_from_cluster(news_publisher_title, title, news_content)
     text_dict = {}
     ner_dict = {}
     pos_dict = {}
+    stopwords_df = pd.read_csv("datasets/sw1k.csv")
+    news_stopwords_list = stopwords_df["term"].tolist()
     for k in range(len(news_publisher_title)):
         title_dict[k] = title[k]
         docs_dict[k] = news_publisher_title[k]
@@ -95,11 +98,12 @@ def get_doc_ids_text_ner_from_cluster(news_publisher_title, title, news_content)
         for ent in doc.ents:
             ner_sent_full = ner_sent_full + ent.text + " "
             if len(ent.text) > 2 and ent.label_ not in ["CARDINAL", "DATE", "GPE", "LANGUAGE", "LOC", "MONEY",
-                                                        "ORDINAL", "PERCENT", "PERSON", "TIME"]:
+                                                        "ORDINAL", "PERCENT", "PERSON",
+                                                        "TIME"] and ent.text.lower() not in news_stopwords_list:
                 ner_sent = ner_sent + ent.text + " : "
         ner_dict[k] = ner_sent.strip(" : ").split(" : ")
         for token in doc:
-            if token.pos_ in ["NOUN", "PROPN"] and token.is_stop == False and token.text not in ner_sent_full:
+            if token.pos_ in ["NOUN", "PROPN"] and token.is_stop == False and token.text not in ner_sent_full and token.text.lower() not in news_stopwords_list:
                 pos_sent = pos_sent + token.text + " : "
         pos_dict[k] = pos_sent.strip(" : ").split(" : ")
     return docs_dict, title_dict, text_dict, ner_dict, pos_dict
@@ -119,7 +123,7 @@ def create_content_weights(no_of_docs, weights, content_capture_needed):
 
     weights_parameters_list = []
     content_depth_needed = 100
-    mul = no_of_docs / 10
+    mul = no_of_docs / 4
     data = np.arange(0, content_depth_needed, 1)
     probdf = halfnorm.pdf(data, loc=mean, scale=content_capture_needed)
     div = (math.ceil(probdf[0] * 1000))
