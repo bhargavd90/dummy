@@ -162,7 +162,19 @@ def alter_WEHONA(content_depth_needed):
 
 
 def alter_Top2Vec(content_depth_needed):
-    print("hi")
+    static_top2vec_news = storingAndLoading.load_static_top2vec_news()
+    static_top2vec_search = storingAndLoading.static_load_cluster_name_dict_top2vec()
+    nodes = static_top2vec_news["nodes"]
+    nodes_updated = []
+    search_updated = {}
+    for node in nodes:
+        if node["level"] <= content_depth_needed:
+            nodes_updated.append(node)
+            cluster_number = "cluster_" + str(node["id"])
+            search_updated[cluster_number] = static_top2vec_search[cluster_number]
+    static_top2vec_news["nodes"] = nodes_updated
+    storingAndLoading.storeDynamictop2vecNews(static_top2vec_news)
+    storingAndLoading.dynamic_store_cluster_name_dict_top2vec(search_updated)
 
 # def run_nothing():
 #     print("hi")

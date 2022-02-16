@@ -10,6 +10,7 @@ var place_dict;
 var person_dict;
 var date_dict;
 var possible_content_depth;
+var news_path;
 
 var modal_news = document.getElementById('modalNews');
 var modal_news_content = document.getElementById('modalNewsContent');
@@ -142,7 +143,14 @@ function click(){
 // Function for displaying tree
 function displayTree() {
 set_entity_names();
-fetch('/results_dynamic/news.json').then(response => {
+
+if(document.getElementById("cluster_method_list").value == "WEHONA"){
+    news_path = '/results_dynamic/news.json';
+}
+else if (document.getElementById("cluster_method_list").value == "Top2Vec"){
+    news_path = '/results_dynamic/top2vecnews.json';
+}
+    fetch(news_path).then(response => {
   return response.json();
 }).then(data => {
   var n = data["nodes"]
@@ -300,7 +308,7 @@ success: function(data){
           text: " ",
           icon: "success",
           buttons: false,
-          timer: 2000,
+          timer: 1500,
           closeOnClickOutside: false
         })
 //        swal.stopLoading();
@@ -321,6 +329,11 @@ function set_content_depth(){
 function content_depth_slider_onchange(){
     not_from_slider = false
 }
+
+function cluster_method_change(){
+    displayTree();
+}
+
 
 function search_focus_node(){
   var options_2 = {

@@ -165,15 +165,6 @@ body{
     margin: 20px;
 }
 
-
-
-#cluster_method{
-    padding : 15px;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    margin: 20px;
-}
-
 #entity_names {
     padding : 2px;
     border: 2px solid #ccc;
@@ -336,7 +327,7 @@ margin:0.25em;
  padding: 14px;
  border: 2px solid gray;
  border-radius : 10px;
- margin-left: 112px;
+ margin-left: 0px;
  background-color: Gainsboro;
 }
 
@@ -355,15 +346,6 @@ margin:0.25em;
  border-radius : 10px;
  background-color: Gainsboro;
 }
-
-#cluster_method_list{
- font-size: 16px;
- padding: 8px;
- border: 2px solid gray;
- border-radius : 10px;
- background-color: #d3d3d3;
-}
-
 
 .button{
   padding: 18px 8px 10px 8px;
@@ -575,10 +557,28 @@ display :inline-flex;
 border:2px solid gray;
 border-radius:10px;
 text-align : center;
-padding: 14px 6px 0px 2px;
+padding: 14px;
 background-color: White;
 font-size: 16px;
-margin-left: 50px;
+margin-left: 5px;
+}
+
+#cluster_method{
+    display :inline;
+    border:2px solid gray;
+    border-radius:10px;
+    text-align : center;
+    padding: 14px 6px 14px 2px;
+    background-color: White;
+    font-size: 16px;
+    margin-left: 10px;
+}
+
+#cluster_method_list{
+ font-size: 16px;
+ border: 2px solid gray;
+ border-radius : 10px;
+ background-color: #d3d3d3;
 }
 
 
