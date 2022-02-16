@@ -7,6 +7,7 @@ import numpy as np
 import math
 from datetime import datetime
 import pandas as pd
+import top2vec_baseline
 
 nlp = spacy.load('en_core_web_md')
 
@@ -138,7 +139,7 @@ def create_content_weights(no_of_docs, weights, content_capture_needed):
 
     content_dict = {}
     for index, min_size in enumerate(weights_parameters_list):
-        content_dict[str(index + 1)] = [[0, 0, 0, 0.2, 0.8, 0, 0, 0, 1],
+        content_dict[str(index + 1)] = [[0, 0, 0, 0, 1, 0, 0, 0, 1],
                                         {"min_cluster_size": min_size,
                                          "min_samples": min_size,
                                          "allow_single_cluster": False,

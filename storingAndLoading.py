@@ -5,7 +5,7 @@ from numpyencoder import NumpyEncoder
 
 def storeData(Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences,
               Date_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict,
-              news_content_length):
+              news_content_length, top2vec_model):
     print("storing data ...")
     with open('resources/place_sentences', 'wb') as fp:
         pickle.dump(Place_Sentences, fp)
@@ -35,6 +35,8 @@ def storeData(Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentence
         pickle.dump(pos_dict, fp)
     with open('resources/news_content_length', 'wb') as fp:
         pickle.dump(news_content_length, fp)
+    with open('resources/top2vec_model', 'wb') as fp:
+        pickle.dump(top2vec_model, fp)
 
 
 def loadData():
@@ -69,27 +71,14 @@ def loadData():
         weights = json.load(fp)
     with open('resources/news_content_length', 'rb') as fp:
         news_content_length = pickle.load(fp)
+    with open('resources/top2vec_model', 'rb') as fp:
+        top2vec_model = pickle.load(fp)
     return Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, \
-           Date_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length
-
-
-def storeNews(nodes_edges_main):
-    with open("results/news.json", "w") as outfile:
-        json.dump(nodes_edges_main, outfile, cls=NumpyEncoder)
+           Date_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model
 
 
 def loadColors():
     with open('resources/colors.json', 'rb') as fp:
-        return json.load(fp)
-
-
-def store_cluster_name_dict(cluster_name_dict):
-    with open("results/search.json", "w") as outfile:
-        json.dump(cluster_name_dict, outfile, cls=NumpyEncoder)
-
-
-def load_cluster_name_dict():
-    with open('results/search.json', 'rb') as fp:
         return json.load(fp)
 
 
@@ -101,3 +90,83 @@ def loadUseFlat():
 def storeUseFlat(useFlat):
     with open("resources/useFlat.json", "w") as outfile:
         json.dump(useFlat, outfile, cls=NumpyEncoder)
+
+
+def load_ui_parameters():
+    with open('resources/ui_parameters.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def store_ui_parameters(ui_parameters):
+    with open("resources/ui_parameters.json", "w") as outfile:
+        json.dump(ui_parameters, outfile, cls=NumpyEncoder)
+
+
+def dynamic_store_cluster_name_dict_news(cluster_name_dict):
+    with open("results_dynamic/search_news.json", "w") as outfile:
+        json.dump(cluster_name_dict, outfile, cls=NumpyEncoder)
+
+
+def static_store_cluster_name_dict_news(cluster_name_dict):
+    with open("results_static/search_news.json", "w") as outfile:
+        json.dump(cluster_name_dict, outfile, cls=NumpyEncoder)
+
+
+def static_load_cluster_name_dict_news():
+    with open('results_static/search_news.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def dynamic_load_cluster_name_dict_news():
+    with open('results_dynamic/search_news.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def dynamic_store_cluster_name_dict_top2vec(cluster_name_dict):
+    with open("results_dynamic/search_top2vec.json", "w") as outfile:
+        json.dump(cluster_name_dict, outfile, cls=NumpyEncoder)
+
+
+def static_store_cluster_name_dict_top2vec(cluster_name_dict):
+    with open("results_static/search_top2vec.json", "w") as outfile:
+        json.dump(cluster_name_dict, outfile, cls=NumpyEncoder)
+
+
+def static_load_cluster_name_dict_top2vec():
+    with open('results_static/search_top2vec.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def dynamic_load_cluster_name_dict_top2vec():
+    with open('results_dynamic/search_top2vec.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def load_static_news():
+    with open('results_static/news.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def storeDynamicNews(nodes_edges_main):
+    with open("results_dynamic/news.json", "w") as outfile:
+        json.dump(nodes_edges_main, outfile, cls=NumpyEncoder)
+
+
+def storeStaticNews(nodes_edges_main):
+    with open("results_static/news.json", "w") as outfile:
+        json.dump(nodes_edges_main, outfile, cls=NumpyEncoder)
+
+
+def load_static_top2vec_news():
+    with open('results_static/top2vecnews.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def storeDynamictop2vecNews(top2vec_nodes_edges_main):
+    with open("results_dynamic/top2vecnews.json", "w") as outfile:
+        json.dump(top2vec_nodes_edges_main, outfile, cls=NumpyEncoder)
+
+
+def storeStatictop2vecNews(top2vec_nodes_edges_main):
+    with open("results_static/top2vecnews.json", "w") as outfile:
+        json.dump(top2vec_nodes_edges_main, outfile, cls=NumpyEncoder)

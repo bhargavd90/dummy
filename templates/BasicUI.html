@@ -17,6 +17,15 @@
 
     <div id="modalSettings" class="modal">
         <h3 style="text-align: center; padding-right: 10px;" id = 'modalSettingsHeader'> Entity Settings</h3>
+
+        <div id="cluster_method">
+        <strong>&nbsp Cluster Method &nbsp&nbsp: &nbsp&nbsp</strong>
+            <select id="cluster_method_list">
+              <option>WEHONA</option>
+              <option>Top2Vec</option>
+            </select>
+        </div>
+
         <div id="modalSettingsContent">
           <strong>Time & Place Weight &nbsp&nbsp&nbsp: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</strong><input type="range" min="0" max="1" step = 0.1 value="0" class="slider" id="myRange1"><span id="demo1"></span>
             <br>
@@ -57,7 +66,7 @@
 
         <footer class="footer">
             <button type="button" class = "button_modal" onclick= "restoreDefaults()"><strong>Restore Defaults</strong></button>
-            <button type="button" class = "button_modal" onclick= "saveAndgenerateHierarchy()"><strong>Save & Generate Hierarchy</strong></button>
+            <button type="button" class = "button_modal" onclick= "set_content_depth();saveAndgenerateHierarchy()"><strong>Save & Generate Hierarchy</strong></button>
             <button type="button" class = "button_modal" onclick= "saveSettings()"><strong>Save</strong></button>
         </footer>
 
@@ -77,7 +86,7 @@
     WEHONA
 <!--    <span style = "display: inline-block; font-size : 15px;">(Weighted Entity Hierarchy of News Articles)</span>-->
         <div id = "content_depth">
-                <strong>Content Coarseness &nbsp&nbsp&nbsp&nbsp: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</strong> <input type="range" min="1" max="10" step = 1 value="4" class="slider" id="content_depth_number" onchange="generateHierarchy()">
+                <strong>Content Coarseness &nbsp&nbsp&nbsp&nbsp: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</strong> <input type="range" min="1" max="10" step = 1 value="10" class="slider" id="content_depth_number" onchange="generateHierarchy()">
         </div>
 
         <input type="text" placeholder="Search.." id="search_node" onkeydown="key_down(event)">
@@ -86,10 +95,10 @@
 <!--        <div id="checkboxId" class="checkboxClass">-->
 <!--        </div>-->
         <div id="hierarchy_display">
-                Hierarchical Display :&nbsp<input type="checkbox" id="hierarchy_display_checkbox" onchange="displayTree()"checked>
+                Hierarchical Display :&nbsp<input type="checkbox" id="hierarchy_display_checkbox" onchange="displayTree();reset_event_representation_news_content()"checked>
         </div>
 
-        <button type="button" class = "button" onclick= "generateHierarchy()"><strong>Generate Hierarchy</strong></button>
+        <button type="button" class = "button" onclick= "set_content_depth();generateHierarchy()"><strong>Generate Hierarchy</strong></button>
 
 <!--    <span style = "display: inline-block; font-size : 15px; margin-left: 210px;">(Advanced)</span>-->
     <i class="bi bi-gear-fill" id = 'settings' onclick= "openSettings()"></i>

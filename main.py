@@ -24,8 +24,9 @@ def generate_hierarchy():
         topic_interest_keyword = request.args.get('topic_interest_keyword')
         from_date_keyword = request.args.get('from_date_keyword')
         to_date_keyword = request.args.get('to_date_keyword')
+        cluster_method = request.args.get('cluster_method')
         split_entity_list = [s.lower() for s in split_entity_string.split(":")]
-        cluster.generateHierarchy(split_entity_list, content_depth_needed, content_capture_needed, time_place_weight, content_weight, topic_interest_keyword, from_date_keyword, to_date_keyword)
+        cluster.generateHierarchy(split_entity_list, content_depth_needed, content_capture_needed, time_place_weight, content_weight, topic_interest_keyword, from_date_keyword, to_date_keyword, cluster_method)
         return 'success'
     except Exception as err:
         print("error while generating hierarchy : ", err)

@@ -149,7 +149,7 @@ body{
     left: 0;
     right: 0;
     width: 50%; /* Full width */
-    height: 75%; /* Full height */
+    height: 87%; /* Full height */
     background-color: white; /* Black w/ opacity */
     border: 2px solid #888;
     margin: auto;
@@ -159,6 +159,15 @@ body{
 }
 
 #modalSettingsContent {
+    padding : 15px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    margin: 20px;
+}
+
+
+
+#cluster_method{
     padding : 15px;
     border: 2px solid #ccc;
     border-radius: 10px;
@@ -346,6 +355,15 @@ margin:0.25em;
  border-radius : 10px;
  background-color: Gainsboro;
 }
+
+#cluster_method_list{
+ font-size: 16px;
+ padding: 8px;
+ border: 2px solid gray;
+ border-radius : 10px;
+ background-color: #d3d3d3;
+}
+
 
 .button{
   padding: 18px 8px 10px 8px;

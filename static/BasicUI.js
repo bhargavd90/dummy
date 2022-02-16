@@ -28,7 +28,6 @@ output1.innerHTML = slider1.value;
 output2.innerHTML = slider2.value;
 
 
-
 function addWhat(params){
 title_in_cluster = title_dict["Title_"+"cluster_" + params.nodes[0].toString()]
 document.getElementById('what_content').textContent = title_in_cluster;
@@ -142,7 +141,7 @@ function click(){
 // Function for displaying tree
 function displayTree() {
 set_entity_names();
-fetch('/results/news.json').then(response => {
+fetch('/results_dynamic/news.json').then(response => {
   return response.json();
 }).then(data => {
   var n = data["nodes"]
@@ -283,10 +282,13 @@ var content_weight = '&content_weight=' + document.getElementById("demo2").inner
 var topic_interest_keyword = '&topic_interest_keyword=' + document.getElementById("topic_interest_keyword").value;
 var from_date_keyword = '&from_date_keyword=' + document.getElementById("from_date_keyword").value;
 var to_date_keyword = '&to_date_keyword=' + document.getElementById("to_date_keyword").value;
+var cluster_method = '&cluster_method=' + document.getElementById("cluster_method_list").value;
+
+
 setProgress();
 $.ajax({
 url: python_url + split_entity_string + content_depth_needed + content_capture_needed + time_place_weight
-    + content_weight +topic_interest_keyword + from_date_keyword + to_date_keyword,
+    + content_weight +topic_interest_keyword + from_date_keyword + to_date_keyword + cluster_method,
 type: 'GET',
 success: function(data){
     if(data == 'success'){
@@ -307,6 +309,11 @@ success: function(data){
         }
     }
 });
+}
+
+
+function set_content_depth(){
+    set(document.getElementById("content_depth_number"), 10);
 }
 
 function search_focus_node(){
@@ -416,7 +423,7 @@ output1.innerHTML = 0;
 output2.innerHTML = 1;
 set(slider1, output1.innerHTML)
 set(slider2, output2.innerHTML)
-document.getElementById("content_depth_number").value = 2
+//document.getElementById("content_depth_number").value = 2
 }
 
 function saveSettings(){
