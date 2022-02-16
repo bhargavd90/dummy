@@ -26,6 +26,7 @@ var slider2 = document.getElementById("myRange2");
 var output2 = document.getElementById("demo2");
 output1.innerHTML = slider1.value;
 output2.innerHTML = slider2.value;
+var not_from_slider = true
 
 
 function addWhat(params){
@@ -155,10 +156,11 @@ fetch('/results_dynamic/news.json').then(response => {
   person_dict = data["Person_dict"]
   date_dict = data["Date_dict"]
   possible_content_depth = data["possible_content_depth"]
-
-//  document.getElementById("content_depth_number").max = possible_content_depth;
-
-
+  if(not_from_slider){
+      document.getElementById("content_depth_number").max = possible_content_depth;
+      set(document.getElementById("content_depth_number"), possible_content_depth);
+    }
+  not_from_slider = true
   nodes = new vis.DataSet(n);
   // create an array with edges
   edges = new vis.DataSet(e);
@@ -313,7 +315,11 @@ success: function(data){
 
 
 function set_content_depth(){
-    set(document.getElementById("content_depth_number"), 10);
+    set(document.getElementById("content_depth_number"), 1000);
+}
+
+function content_depth_slider_onchange(){
+    not_from_slider = false
 }
 
 function search_focus_node(){

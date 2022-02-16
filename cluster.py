@@ -45,7 +45,7 @@ def storeHierarchyData():
 
     top2vec_baseline.run_Top2Vec()
     ui_parameters = storingAndLoading.load_ui_parameters()
-    run_WEHONA(ui_parameters["split_entity_list_fromUI"], ui_parameters["content_depth_needed"],
+    run_WEHONA(ui_parameters["split_entity_list_fromUI"], 1000,
                ui_parameters["content_capture_needed"], ui_parameters["time_place_weight"],
                ui_parameters["content_weight"], ui_parameters["topic_interest_keyword"],
                ui_parameters["from_date_keyword"], ui_parameters["to_date_keyword"], 95)
@@ -57,19 +57,20 @@ def generateHierarchy(split_entity_list_fromUI, content_depth_needed, content_ca
     ui_parameters = storingAndLoading.load_ui_parameters()
 
     if cluster_method == "WEHONA":
-        if ui_parameters["content_capture_needed"] != content_capture_needed or ui_parameters["time_place_weight"] != time_place_weight or ui_parameters["content_weight"] != content_weight or ui_parameters["topic_interest_keyword"] != topic_interest_keyword or ui_parameters["from_date_keyword"] != from_date_keyword or ui_parameters["to_date_keyword"] != to_date_keyword:
-            run_WEHONA(split_entity_list_fromUI, 10, content_capture_needed, time_place_weight, content_weight, topic_interest_keyword, from_date_keyword, to_date_keyword, ratio_limit)
+        if ui_parameters["split_entity_list_fromUI"] != split_entity_list_fromUI or ui_parameters[
+            "content_capture_needed"] != content_capture_needed or ui_parameters[
+            "time_place_weight"] != time_place_weight or ui_parameters["content_weight"] != content_weight or \
+                ui_parameters["topic_interest_keyword"] != topic_interest_keyword or ui_parameters[
+            "from_date_keyword"] != from_date_keyword or ui_parameters["to_date_keyword"] != to_date_keyword:
+            run_WEHONA(split_entity_list_fromUI, 10, content_capture_needed, time_place_weight, content_weight,
+                       topic_interest_keyword, from_date_keyword, to_date_keyword, ratio_limit)
         elif ui_parameters["content_depth_needed"] != content_depth_needed:
             alter_WEHONA(content_depth_needed)
-        else:
-            run_nothing()
     elif cluster_method == "Top2Vec":
         if ui_parameters["content_depth_needed"] != content_depth_needed:
             alter_Top2Vec(content_depth_needed)
-        else:
-            run_nothing()
 
-    ui_parameters["split_entity_list_fromUI"] = split_entity_list_fromUI
+    ui_parameters["split_entity_list_fromUI"] = list(dict.fromkeys(split_entity_list_fromUI))
     ui_parameters["content_depth_needed"] = content_depth_needed
     ui_parameters["content_capture_needed"] = content_capture_needed
     ui_parameters["time_place_weight"] = time_place_weight
@@ -105,8 +106,9 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
         raise Exception("Unable to find documents for the given filters")
     weights, possible_content_depth = helper.create_content_weights(len(clusters_to_furthur_split), weights,
                                                                     content_capture_needed)
-    if content_depth_needed > possible_content_depth:   # set max value in ui
+    if content_depth_needed > possible_content_depth:  # set max value in ui
         content_depth_needed = possible_content_depth
+
     split_entity_list = helper.getSplitEntityList(split_entity_list_fromUI, content_depth_needed)
     print("splitting data and generating nodes and edges...")
     parent_cluster_main_phase_1, cluster_info_for_not_clustered_data_dict, clusters_to_furthur_split, Nodes_dict, ids_based_on_labels, entity_name_list, entity_naming_dict, content_depth_now = splitting.split_for_3_levels(
@@ -123,7 +125,13 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
             time_place_weight, content_weight)
     storingAndLoading.storeUseFlat({"useFlat": True})
     nodes_edges_main['docs_dict'], nodes_edges_main['text_dict'] = docs_dict, text_dict
-    nodes_edges_main['possible_content_depth'] = possible_content_depth
+
+    possible_content_depth_nodes_edges = 0
+    for node in nodes_edges_main['nodes']:
+        if node["level"] > possible_content_depth_nodes_edges:
+            possible_content_depth_nodes_edges = node["level"]
+
+    nodes_edges_main['possible_content_depth'] = possible_content_depth_nodes_edges
 
     nodes_edges_main = filtering.eventRepresentation(nodes_edges_main, title_dict, text_dict, Place_Sentences,
                                                      Person_Sentences,
@@ -146,7 +154,7 @@ def alter_WEHONA(content_depth_needed):
     for node in nodes:
         if node["level"] <= content_depth_needed:
             nodes_updated.append(node)
-            cluster_number = "cluster_"+str(node["id"])
+            cluster_number = "cluster_" + str(node["id"])
             search_updated[cluster_number] = static_search[cluster_number]
     static_news["nodes"] = nodes_updated
     storingAndLoading.storeDynamicNews(static_news)
@@ -156,6 +164,5 @@ def alter_WEHONA(content_depth_needed):
 def alter_Top2Vec(content_depth_needed):
     print("hi")
 
-
-def run_nothing():
-    print("hi")
+# def run_nothing():
+#     print("hi")

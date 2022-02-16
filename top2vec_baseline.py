@@ -58,7 +58,13 @@ def run_Top2Vec():
         cluster_dict_updated[cluster_id] = docs_in_cluster
     top2vec_nodes_edges_main["cluster_dict"] = cluster_dict_updated
     top2vec_nodes_edges_main['docs_dict'], top2vec_nodes_edges_main['text_dict'] = docs_dict, text_dict
-    top2vec_nodes_edges_main['possible_content_depth'] = 100
+
+    possible_content_depth_nodes_edges = 0
+    for node in top2vec_nodes_edges_main['nodes']:
+        if node["level"] > possible_content_depth_nodes_edges:
+            possible_content_depth_nodes_edges = node["level"]
+
+    top2vec_nodes_edges_main['possible_content_depth'] = possible_content_depth_nodes_edges
 
     top2vec_nodes_edges_main = filtering.eventRepresentation(top2vec_nodes_edges_main, title_dict, text_dict,
                                                              Place_Sentences,
