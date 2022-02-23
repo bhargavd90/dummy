@@ -26,7 +26,9 @@ def generate_hierarchy():
         to_date_keyword = request.args.get('to_date_keyword')
         cluster_method = request.args.get('cluster_method')
         split_entity_list = [s.lower() for s in split_entity_string.split(":")]
-        cluster.generateHierarchy(split_entity_list, content_depth_needed, content_capture_needed, time_place_weight, content_weight, topic_interest_keyword, from_date_keyword, to_date_keyword, cluster_method)
+        cluster.generateHierarchy(split_entity_list, content_depth_needed, content_capture_needed, time_place_weight,
+                                  content_weight, topic_interest_keyword, from_date_keyword, to_date_keyword,
+                                  cluster_method)
         return 'success'
     except Exception as err:
         print("error while generating hierarchy : ", err)
@@ -42,6 +44,13 @@ def search_node():
     except Exception as err:
         print("error while searching for a news cluster : ", err)
         return str(err)
+
+
+@app.route('/get_summary_for_cluster')
+def get_summary_for_cluster():
+    cluster_method_no = request.args.get('cluster_method_no')
+    cluster_summary = cluster.generate_custer_summary(cluster_method_no)
+    return cluster_summary
 
 
 app.run(host='127.0.0.1', port='5000')

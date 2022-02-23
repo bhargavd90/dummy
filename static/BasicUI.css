@@ -149,7 +149,7 @@ body{
     left: 0;
     right: 0;
     width: 50%; /* Full width */
-    height: 87%; /* Full height */
+    height: 73%; /* Full height */
     background-color: white; /* Black w/ opacity */
     border: 2px solid #888;
     margin: auto;
@@ -272,6 +272,13 @@ margin:0.25em;
   overflow: hidden;
   /*text-overflow: ellipsis;*/
   max-width: 520px;
+}
+
+.dropdownWithoutEffectRelated {
+  position: relative;
+  display: inline-block;
+  margin-left: 12px;
+  padding: 2px;
 }
 
 .dropdownWithoutEffectSummary {
@@ -421,6 +428,32 @@ transform: translateY(1px);
   transform: translateY(3px);
 }
 
+
+
+
+.button_modal_summary{
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  background-color: #7CB9E8;
+  border: none;
+  border: 1.5px solid black;
+  border-radius: 10px;
+  margin-left: 5px;
+
+}
+
+.button_modal_summary:hover{
+background-color: DarkSeaGreen;
+transform: translateY(1px);
+}
+
+.button_modal_summary:active {
+  background-color: DarkSeaGreen;
+  transform: translateY(3px);
+}
+
 #settings{
 float: right;
 padding-right : 5px;
@@ -476,6 +509,10 @@ hr {
 
 .tabcontent {
   display: none;
+}
+
+#summary_button{
+ display: none;
 }
 
 
@@ -623,4 +660,30 @@ ul {
 
 #hierarchy_display_checkbox{
     font-size:30px;
+}
+
+
+
+.related_events{
+  display : inline-block;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+  background-color: #7CB9E8;
+  border: 1.5px solid black;
+  border-radius: 10px;
+  margin-right: 5px;
+  padding : 4px;
+
+}
+
+.related_events:hover{
+background-color: DarkSeaGreen;
+transform: translateY(1px);
+}
+
+.related_events:active {
+  background-color: DarkSeaGreen;
+  transform: translateY(3px);
 }

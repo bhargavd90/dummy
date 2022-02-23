@@ -56,7 +56,7 @@ def generateHierarchy(split_entity_list_fromUI, content_depth_needed, content_ca
     ratio_limit = 95
     ui_parameters = storingAndLoading.load_ui_parameters()
 
-    if cluster_method == "WEHONA":
+    if cluster_method == "Hubble":
         if ui_parameters["split_entity_list_fromUI"] != split_entity_list_fromUI or ui_parameters[
             "content_capture_needed"] != content_capture_needed or ui_parameters[
             "time_place_weight"] != time_place_weight or ui_parameters["content_weight"] != content_weight or \
@@ -66,7 +66,7 @@ def generateHierarchy(split_entity_list_fromUI, content_depth_needed, content_ca
                        topic_interest_keyword, from_date_keyword, to_date_keyword, ratio_limit)
         elif ui_parameters["content_depth_needed"] != content_depth_needed:
             alter_WEHONA(content_depth_needed)
-    elif cluster_method == "Top2Vec":
+    elif cluster_method == "Voyager":
         if ui_parameters["content_depth_needed"] != content_depth_needed:
             alter_Top2Vec(content_depth_needed)
 
@@ -92,6 +92,7 @@ def search_node(search_term):
 
 def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_needed, time_place_weight,
                content_weight, topic_interest_keyword, from_date_keyword, to_date_keyword, ratio_limit):
+    storingAndLoading.store_summaries({})
     cluster_info_for_not_clustered_data_dict = {}
     Nodes_dict = {}
     entity_naming_dict = {}
@@ -139,6 +140,9 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
     nodes_edges_main, cluster_name_dict = filtering.filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict,
                                                                        ratio_limit)
 
+    nodes_edges_main = helper.find_related_events(nodes_edges_main, cluster_embeddings_dict_full)
+
+
     storingAndLoading.dynamic_store_cluster_name_dict_news(cluster_name_dict)
     storingAndLoading.static_store_cluster_name_dict_news(cluster_name_dict)
     storingAndLoading.storeDynamicNews(nodes_edges_main)
@@ -176,5 +180,24 @@ def alter_Top2Vec(content_depth_needed):
     storingAndLoading.storeDynamictop2vecNews(static_top2vec_news)
     storingAndLoading.dynamic_store_cluster_name_dict_top2vec(search_updated)
 
+
 # def run_nothing():
 #     print("hi")
+
+
+def generate_custer_summary(cluster_method_no):
+    cluster_method_no_list = cluster_method_no.split(":")
+    cluster_method = cluster_method_no_list[0]
+    cluster_no = cluster_method_no_list[1]
+    summaries = storingAndLoading.load_summaries()
+    if cluster_no in summaries:
+        return summaries[cluster_no]
+    else:
+        if cluster_method == "Hubble":
+            news = storingAndLoading.load_dynamic_news()
+        elif cluster_method == "Voyager":
+            news = storingAndLoading.load_dynamic_top2vec_news()
+        cluster_summary = helper.generate_custer_summary(news, cluster_no)
+        summaries[cluster_no] = cluster_summary
+        storingAndLoading.store_summaries(summaries)
+        return cluster_summary

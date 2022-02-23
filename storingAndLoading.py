@@ -170,3 +170,23 @@ def storeDynamictop2vecNews(top2vec_nodes_edges_main):
 def storeStatictop2vecNews(top2vec_nodes_edges_main):
     with open("results_static/top2vecnews.json", "w") as outfile:
         json.dump(top2vec_nodes_edges_main, outfile, cls=NumpyEncoder)
+
+
+def load_dynamic_news():
+    with open('results_dynamic/news.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def load_dynamic_top2vec_news():
+    with open('results_dynamic/top2vecnews.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def store_summaries(summaries):
+    with open("title_summary/summaries.json", "w") as outfile:
+        json.dump(summaries, outfile, cls=NumpyEncoder)
+
+
+def load_summaries():
+    with open('title_summary/summaries.json', 'rb') as fp:
+        return json.load(fp)

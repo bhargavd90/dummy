@@ -92,6 +92,8 @@ def filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict, ratio_limit):
                 set(range(edges_filter_list_1[len(edges_filter_list_1) - 1])[1:]) - set(edges_filter_list_1))
     nodes_dict_updated = list(np.delete(nodes_dict, nodes_to_remove))
     nodes_edges_main['edges'] = edges_dict_updated
+    for node_to_remove in nodes_to_remove:
+        cluster_dict.pop(list(cluster_dict.keys())[node_to_remove])
 
     nodes_dict_updated_temp = nodes_dict_updated
 
@@ -140,6 +142,7 @@ def filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict, ratio_limit):
                     "background": colorsDict[str(colorDict_id_from_node)][str(level_no)], "border": "black"}
                 nodes_dict_updated[index]["colorDict_id"] = colorDict_id_from_node
 
+    nodes_dict_updated[0]["colorDict_id"] = 0
     nodes_edges_main['nodes'] = nodes_dict_updated
     return nodes_edges_main, cluster_name_dict
 
@@ -179,10 +182,10 @@ def eventRepresentation(nodes_edges_main, title_dict, text_dict, Place_Sentences
         Date_dict["Date_" + cluster_name] = get_unique_list_based_on_fuzzy_matching(date_words, ratio_limit)[0:10]
 
         # titleDoc = nlp(Title_Sentence_all.strip(". "))
-        # for title_sent in titleDoc._.textrank.summary(limit_phrases=100, limit_sentences=1):
+        # for title_sent in titleDoc._.textrank.title_summary(limit_phrases=100, limit_sentences=1):
         #     Title_Sentence = Title_Sentence + str(title_sent) + ". "
         # summaryDoc = nlp(Summary_Sentence_all.strip(". "))
-        # for summary_sent in summaryDoc._.textrank.summary(limit_phrases=100, limit_sentences=5):
+        # for summary_sent in summaryDoc._.textrank.title_summary(limit_phrases=100, limit_sentences=5):
         #     Summary_Sentence = Summary_Sentence + str(summary_sent) + ". "
 
         Title_dict["Title_" + cluster_name] = Title_Sentence

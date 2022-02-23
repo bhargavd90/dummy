@@ -6,6 +6,9 @@ import helper
 from hdbscan import flat
 import numpy as np
 import storingAndLoading
+from dbvc import DBCV
+from scipy.spatial.distance import euclidean
+from sklearn.metrics import silhouette_score
 
 
 def get_cluster_labels(weighted_embeddings, hdbscan_dict, is_first):
@@ -30,7 +33,13 @@ def perform_split(cluster_data, complete_weights, hdbscan_dict, is_first):
     weighted_embeddings = embeddings.get_weighted_embeddings(cluster_embeddings_dict, complete_weights)
     if (len(weighted_embeddings)) > 1:
         cluster_labels = get_cluster_labels(weighted_embeddings, hdbscan_dict, is_first)
+
         # print_hierarchy(weighted_embeddings)
+        # print("hi")
+        # print(DBCV(weighted_embeddings, cluster_labels, dist_function=euclidean))
+        # if len(np.unique(cluster_labels)) > 1:
+        #     print(silhouette_score(weighted_embeddings, cluster_labels))
+
         id_mapping_dict = {v: k for v, k in enumerate(cluster_data[1])}
         list_of_lists = pd.Series(range(len(cluster_labels))).groupby(cluster_labels, sort=True).apply(list).tolist()
         correct_id_labels = [[id_mapping_dict.get(ele, ele) for ele in lst] for lst in list_of_lists]

@@ -81,8 +81,8 @@
         <div id="cluster_method">
         <strong>&nbsp Method &nbsp&nbsp: &nbsp&nbsp</strong>
             <select id="cluster_method_list" onchange="cluster_method_change()">
-              <option>WEHONA</option>
-              <option>Top2Vec</option>
+              <option>Hubble</option>
+              <option>Voyager</option>
             </select>
         </div>
 
@@ -135,13 +135,18 @@
 <!--            <strong><div class="dropdown" id = "first_where_city_content">City</div></strong>-->
         </div>
         <br>
-        <div style="margin-bottom: 30px;"><strong>Summary <i class="bi bi-chat-text"></i> :</strong>
-            <div class="dropdownWithoutEffectSummary"> <strong><div id="summary_content">Summary</div></strong></div>
+        <div style="margin-bottom: 30px;"><strong>Related Events <i class="bi bi-columns-gap"></i> :</strong>
+            <div class="dropdownWithoutEffectRelated"> <strong><div id="related_events_div">Related Events</div></strong></div>
         </div>
     </div>
 
     <div id="newsArticles">
-        <div style = "font-size: 20px;"><strong>News Articles</strong></div>
+        <div style = "font-size: 20px;">
+            <strong>News Articles</strong>
+            <div id="summary_button">
+             <button type="button" class = "button_modal_summary" onclick= "showSummary()"><strong>Summary</strong></button>
+            </div>
+        </div>
         <div id="newsArticlesText"></div>
     </div>
 

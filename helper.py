@@ -6,10 +6,17 @@ from scipy.stats import halfnorm
 import numpy as np
 import math
 from datetime import datetime
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
-import top2vec_baseline
+import embeddings
+import pytextrank
 
 nlp = spacy.load('en_core_web_md')
+nlp.add_pipe("textrank")
+
+model_name = 'paraphrase-MiniLM-L3-v2'
+model = SentenceTransformer(model_name)
 
 
 def get_sentences_from_news(df, news_content):
@@ -104,7 +111,8 @@ def get_doc_ids_text_ner_from_cluster(news_publisher_title, title, news_content)
                 ner_sent = ner_sent + ent.text + " : "
         ner_dict[k] = ner_sent.strip(" : ").split(" : ")
         for token in doc:
-            if token.pos_ in ["NOUN", "PROPN"] and token.is_stop == False and token.text not in ner_sent_full and token.text.lower() not in news_stopwords_list:
+            if token.pos_ in ["NOUN",
+                              "PROPN"] and token.is_stop == False and token.text not in ner_sent_full and token.text.lower() not in news_stopwords_list:
                 pos_sent = pos_sent + token.text + " : "
         pos_dict[k] = pos_sent.strip(" : ").split(" : ")
     return docs_dict, title_dict, text_dict, ner_dict, pos_dict
@@ -138,12 +146,21 @@ def create_content_weights(no_of_docs, weights, content_capture_needed):
             weights_parameters_list.append(now + 1)
 
     content_dict = {}
+    epsilon_list = [1, 0.5, 0]
     for index, min_size in enumerate(weights_parameters_list):
+
+        if index == 0:
+            epsilon = epsilon_list[0]
+        elif index == 1:
+            epsilon = epsilon_list[1]
+        else:
+            epsilon = epsilon_list[2]
+
         content_dict[str(index + 1)] = [[0, 0, 0, 0, 1, 0, 0, 0, 1],
                                         {"min_cluster_size": min_size,
-                                         "min_samples": min_size,
+                                         # "min_samples": min_size,
                                          "allow_single_cluster": False,
-                                         "cluster_selection_epsilon": 0,
+                                         "cluster_selection_epsilon": epsilon,
                                          "cluster_selection_method": "eom"}]
 
     weights["content"] = content_dict
@@ -177,3 +194,83 @@ def fetchDocumentstoSplit(text_dict, Date_Sentences, topic_interest_keyword, fro
             clusters_to_split_by_date.append(index)
     clusters_to_split = list(set(clusters_to_split_by_key).intersection(clusters_to_split_by_date))
     return clusters_to_split
+
+
+def generate_custer_summary(news, cluster_no):
+    text_dict = news["text_dict"]
+    doc_ids_in_cluster = news["cluster_dict"][cluster_no]
+    total_text_from_cluster = ""
+    summary_sentence = "<strong>->  </strong>"
+    summary_sentence_list = []
+    summary_sentence_dict = {}
+    for doc_id in doc_ids_in_cluster[0:10]:
+        total_text_from_cluster = total_text_from_cluster + text_dict[str(doc_id)] + ". "
+    summaryDoc = nlp(total_text_from_cluster.strip(". "))
+    for summary_sent_doc in summaryDoc._.textrank.summary(limit_phrases=100, limit_sentences=50):
+        summary_sentence_list.append(summary_sent_doc)
+
+    for index, summary_sent in enumerate(summary_sentence_list):
+        if len(summary_sentence_dict) > 4:
+            break
+        if index == 0:
+            summary_sentence_dict[str(summary_sent)] = model.encode(str(summary_sent))
+        else:
+            flag_list = []
+            for summary_sent_key, summary_sent_value in summary_sentence_dict.items():
+                doc_emb = model.encode(str(summary_sent))
+                sim = round(cosine_similarity([doc_emb], [summary_sent_value]).item(), 3)
+                if sim < 0.7:
+                    flag_list.append("add")
+                else:
+                    flag_list.append("delete")
+            if not "delete" in flag_list:
+                summary_sentence_dict[str(summary_sent)] = doc_emb
+    for key in summary_sentence_dict.keys():
+        summary_sentence = summary_sentence + key + ". " + "<br>" + "<strong>->  </strong>"
+    return summary_sentence.rstrip("<strong>->  </strong>")
+
+
+def find_related_events(nodes_edges_main, cluster_embeddings_dict_full):
+    nodes_list = nodes_edges_main["nodes"]
+    nodes_branch_dict = {}
+    related_events_dict = {}
+    cluster_centroids_dict = {}
+    cluster_centroids_list = []
+    cluster_dict = nodes_edges_main["cluster_dict"]
+    for node in nodes_list:
+        nodes_branch_dict["cluster_" + str(node["id"])] = node["colorDict_id"]
+    for cluster_no, doc_ids in cluster_dict.items():
+        cluster_embeddings_dict_per_cluster = embeddings.get_cluster_embeddings_dict_per_cluster(
+            cluster_embeddings_dict_full, doc_ids)
+        weighted_embeddings = embeddings.get_weighted_embeddings(cluster_embeddings_dict_per_cluster,
+                                                                 [0, 0, 0, 0, 1, 0, 0, 0, 1])
+        cluster_centroid = np.mean(weighted_embeddings, axis=0)
+        cluster_centroids_dict[cluster_no] = cluster_centroid
+        cluster_centroids_list.append(cluster_centroid)
+
+    similarities = cosine_similarity(cluster_centroids_list)
+
+    cluster_names = list(cluster_centroids_dict.keys())
+
+    for index, sim_array in enumerate(similarities):
+        sim_list = list(sim_array)
+        sim_list_sorted = sorted(sim_list, reverse=True)
+        for_cluster = cluster_names[index]
+        to_cluster_list = []
+        count = 0
+        for sim_value in sim_list_sorted:
+            index_of_highest_similarity = sim_list.index(sim_value)
+            to_cluster = cluster_names[index_of_highest_similarity]
+            if sim_value == 1 or nodes_branch_dict[for_cluster] == nodes_branch_dict[to_cluster] or to_cluster == "cluster_0":
+                continue
+
+            if count > 1 or sim_value < 0.5:
+                break
+            else:
+                to_cluster_list.append(to_cluster)
+                count = count + 1
+
+        related_events_dict[for_cluster] = to_cluster_list
+    related_events_dict["cluster_0"] = []
+    nodes_edges_main["related_events"] = related_events_dict
+    return nodes_edges_main

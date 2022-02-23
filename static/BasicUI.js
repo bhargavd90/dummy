@@ -4,6 +4,7 @@ var network;
 var cluster_dict;
 var docs_dict;
 var text_dict;
+var related_events;
 var title_dict;
 var summary_dict;
 var place_dict;
@@ -11,6 +12,7 @@ var person_dict;
 var date_dict;
 var possible_content_depth;
 var news_path;
+var summary;
 
 var modal_news = document.getElementById('modalNews');
 var modal_news_content = document.getElementById('modalNewsContent');
@@ -77,6 +79,40 @@ for (k = 1; k < place_in_cluster.length; k++){
 first_where_place_content.appendChild(where_place_content);
 }
 
+function addRelatedEvents(params){
+var related_events_div = document.getElementById("related_events_div");
+related_events_div.innerHTML = '';
+related_events_in_cluster = related_events["cluster_" + params.nodes[0].toString()]
+    if(related_events_in_cluster.length == 0){
+        related_events_div.innerText = "No Related Events";
+    }
+    else{
+        for (k = 0; k < related_events_in_cluster.length; k++){
+            var newDiv = document.createElement('div');
+            newDiv.className = "related_events"
+            newDiv.cluster_name = related_events_in_cluster[k]
+            newDiv.innerHTML = "Related Event " + (k+1).toString();
+            newDiv.addEventListener('click', showRelatedEvent, false);
+            related_events_div.appendChild(newDiv);
+        }
+    }
+}
+
+var showRelatedEvent = function() {
+    var options_2 = {
+    scale: 2,
+    offset: { x: 0, y: 0},
+    animation: {
+      duration: 5000,
+      easingFunction: "linear",
+    },
+  };
+  var cluster_id = parseInt(this.cluster_name.replace("cluster_", ""));
+  network.focus(cluster_id, options_2);
+  network.selectNodes([cluster_id], true);
+}
+
+
 //function addCountry(){
 //var first_where_country_content = document.getElementById("first_where_country_content")
 //first_where_country_content.textContent = "Name Name";
@@ -104,8 +140,20 @@ first_where_place_content.appendChild(where_place_content);
 //}
 
 function addSummary(params){
-summary_in_cluster = summary_dict["Summary_"+"cluster_" + params.nodes[0].toString()]
-document.getElementById('summary_content').textContent = summary_in_cluster;
+  document.getElementById('summary_button').style.display = "none";
+  var python_url = 'http://127.0.0.1:5000/get_summary_for_cluster';
+  var cluster_method_no = '?cluster_method_no=' + document.getElementById("cluster_method_list").value + ":" + "cluster_" + params.nodes[0].toString();
+  $.ajax({
+    url: python_url + cluster_method_no,
+    type: 'GET',
+    success: function(data){
+         summary = data;
+         document.getElementById('summary_button').style.display = "inline-block";
+    }
+    });
+
+//summary_in_cluster = summary_dict["Summary_"+"cluster_" + params.nodes[0].toString()]
+//document.getElementById('summary_content').textContent = summary_in_cluster;
 }
 
 function addNews(params){
@@ -137,6 +185,7 @@ function click(){
         addPlace(params);
         addNews(params);
         addSummary(params);
+        addRelatedEvents(params);
     }});
 }
 
@@ -144,10 +193,10 @@ function click(){
 function displayTree() {
 set_entity_names();
 
-if(document.getElementById("cluster_method_list").value == "WEHONA"){
+if(document.getElementById("cluster_method_list").value == "Hubble"){
     news_path = '/results_dynamic/news.json';
 }
-else if (document.getElementById("cluster_method_list").value == "Top2Vec"){
+else if (document.getElementById("cluster_method_list").value == "Voyager"){
     news_path = '/results_dynamic/top2vecnews.json';
 }
     fetch(news_path).then(response => {
@@ -158,6 +207,7 @@ else if (document.getElementById("cluster_method_list").value == "Top2Vec"){
   cluster_dict = data["cluster_dict"]
   docs_dict = data["docs_dict"]
   text_dict = data["text_dict"]
+  related_events = data["related_events"]
   title_dict = data["Title_dict"]
   summary_dict = data["Summary_dict"]
   place_dict = data["Place_dict"]
@@ -223,6 +273,20 @@ var openFullNews = function() {
      modal_news_content.innerHTML = this.fulltext;
      modal_news_header.innerHTML = this.title;
 };
+
+
+function showSummary(){
+     document.getElementById('hierarchicalStructure').style.filter = "blur(2px)";
+     document.getElementById('displayInfo').style.filter = "blur(2px)";
+     document.getElementById('mainHeader').style.filter = "blur(2px)";
+     document.body.style.backgroundColor = "DimGrey";
+     modal_news.style.display = "block";
+     modal_news_content.innerHTML = summary;
+     modal_news_header.innerHTML = "Summary";
+}
+
+
+
 
 /*window.onclick = function(event) {
     if (event.target == modal) {
@@ -331,6 +395,14 @@ function content_depth_slider_onchange(){
 }
 
 function cluster_method_change(){
+    if(document.getElementById("cluster_method_list").value == "Hubble"){
+        document.getElementById("settings").style.display = "block";
+        reset_event_representation_news_content();
+        }
+    else if (document.getElementById("cluster_method_list").value == "Voyager"){
+        document.getElementById("settings").style.display = "none";
+        reset_event_representation_news_content();
+        }
     displayTree();
 }
 
@@ -413,7 +485,8 @@ document.getElementById("first_who_content").innerHTML = "Person";
 document.getElementById("first_when_content").innerHTML = "Time";
 document.getElementById("first_where_place_content").innerHTML = "Place";
 document.getElementById("newsArticlesText").innerHTML = "";
-document.getElementById('summary_content').innerHTML = "Summary"
+document.getElementById("related_events_div").innerHTML = "Related Events";
+//document.getElementById('summary_content').innerHTML = "Summary"
 }
 
 
