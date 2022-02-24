@@ -74,6 +74,8 @@ def run_Top2Vec():
                                                                                pos_dict,
                                                                                ratio_limit)
 
+    top2vec_nodes_edges_main = helper.find_related_events(top2vec_nodes_edges_main, cluster_embeddings_dict_full)
+
     storingAndLoading.dynamic_store_cluster_name_dict_top2vec(cluster_name_dict)
     storingAndLoading.static_store_cluster_name_dict_top2vec(cluster_name_dict)
     storingAndLoading.storeDynamictop2vecNews(top2vec_nodes_edges_main)

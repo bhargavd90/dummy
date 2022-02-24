@@ -261,10 +261,10 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full):
         for sim_value in sim_list_sorted:
             index_of_highest_similarity = sim_list.index(sim_value)
             to_cluster = cluster_names[index_of_highest_similarity]
-            if sim_value == 1 or nodes_branch_dict[for_cluster] == nodes_branch_dict[to_cluster] or to_cluster == "cluster_0":
+            if sim_value == 1 or nodes_branch_dict[for_cluster] == nodes_branch_dict[to_cluster] or index_of_highest_similarity == 0:
                 continue
 
-            if count > 1 or sim_value < 0.5:
+            if count > 2 or sim_value < 0.5:
                 break
             else:
                 to_cluster_list.append(to_cluster)

@@ -13,6 +13,7 @@ var date_dict;
 var possible_content_depth;
 var news_path;
 var summary;
+var n_list = [];
 
 var modal_news = document.getElementById('modalNews');
 var modal_news_content = document.getElementById('modalNewsContent');
@@ -108,8 +109,13 @@ var showRelatedEvent = function() {
     },
   };
   var cluster_id = parseInt(this.cluster_name.replace("cluster_", ""));
-  network.focus(cluster_id, options_2);
-  network.selectNodes([cluster_id], true);
+  if (n_list.includes(cluster_id)){
+      network.focus(cluster_id, options_2);
+      network.selectNodes([cluster_id], true);
+  }
+  else{
+    swal("Increase the coarseness to view this Related Event!", "", "info");
+  }
 }
 
 
@@ -192,7 +198,7 @@ function click(){
 // Function for displaying tree
 function displayTree() {
 set_entity_names();
-
+n_list = [];
 if(document.getElementById("cluster_method_list").value == "Hubble"){
     news_path = '/results_dynamic/news.json';
 }
@@ -203,6 +209,11 @@ else if (document.getElementById("cluster_method_list").value == "Voyager"){
   return response.json();
 }).then(data => {
   var n = data["nodes"]
+  for(j=0; j<n.length; j++){
+    node_id = n[j]["id"]
+    n_list.push(node_id)
+  }
+
   var e = data["edges"]
   cluster_dict = data["cluster_dict"]
   docs_dict = data["docs_dict"]
