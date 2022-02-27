@@ -16,6 +16,7 @@ def get_news_data():
     df4 = df_original[['title', 'publisher', 'main_content', 'timestamp']][3000:3200]
     df5 = df_original[['title', 'publisher', 'main_content', 'timestamp']][4000:4200]
     df = pd.concat([df1, df2, df3, df4, df5])
+    # df = df_original
     df["publisher_title"] = df["publisher"] + ' - ' + df["title"]
     return df
 

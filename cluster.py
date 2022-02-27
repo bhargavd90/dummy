@@ -26,15 +26,15 @@ def storeHierarchyData():
     news_publisher_title = [x.replace('\\', '') for x in df["publisher_title"].tolist()]
     title = [x.replace('\\', '') for x in df["title"].tolist()]
 
-    Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences = helper.get_sentences_from_news(
-        df, news_content)
+    Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences, docs_dict, title_dict, text_dict, ner_dict, pos_dict, token_dict, unique_ner_list, unique_pos_list, unique_token_list_full = helper.get_sentences_from_news(
+        df, news_content, news_publisher_title, title, news_content_WO_preprocssing)
     cluster_embeddings_dict_full = embeddings.get_cluster_embeddings_full(model_name, Place_Sentences, Person_Sentences,
                                                                           Content_Sentences, Day_Sentences,
                                                                           Month_Sentences,
-                                                                          Year_Sentences, title, umap_flag, umap_dict)
-    docs_dict, title_dict, text_dict, ner_dict, pos_dict = helper.get_doc_ids_text_ner_from_cluster(
-        news_publisher_title, title,
-        news_content_WO_preprocssing)
+                                                                          Year_Sentences, title, umap_flag, umap_dict, token_dict, unique_ner_list, unique_pos_list, unique_token_list_full)
+    # docs_dict, title_dict, text_dict, ner_dict, pos_dict = helper.get_doc_ids_text_ner_from_cluster(
+    #     news_publisher_title, title,
+    #     news_content_WO_preprocssing)
 
     top2vec_model = Top2Vec(documents=news_content, speed="learn", workers=8)
 

@@ -19,29 +19,66 @@ model_name = 'paraphrase-MiniLM-L3-v2'
 model = SentenceTransformer(model_name)
 
 
-def get_sentences_from_news(df, news_content):
+def get_sentences_from_news(df, news_content, news_publisher_title, title, news_content_WO_preprocssing):
     print("creating sentences from data ...")
     Place_Sentences = []
     Person_Sentences = []
     Content_Sentences = []
-    for news in news_content:
+    Ner_List = []
+    Pos_List = []
+    docs_dict = {}
+    title_dict = {}
+    token_list_full = []
+    text_dict = {}
+    ner_dict = {}
+    pos_dict = {}
+    token_dict = {}
+    stopwords_df = pd.read_csv("resources/sw1k.csv")
+    news_stopwords_list = stopwords_df["term"].tolist()
+    for k in range(len(news_publisher_title)):
+        tokens_list = []
         place_sent = ""
         person_sent = ""
-        doc = nlp(news)
+        title_dict[k] = title[k]
+        docs_dict[k] = news_publisher_title[k]
+        text_dict[k] = news_content_WO_preprocssing[k]
+        ner_sent = ""
+        ner_sent_full = ""
+        pos_sent = ""
+        doc = nlp(news_content[k])
         for ent in doc.ents:
-            if len(ent.text) > 2:
-                if ent.label_ == "PERSON":
-                    person_sent = person_sent + ent.text + ","
-                elif ent.label_ == "GPE":
-                    place_sent = place_sent + ent.text + ","
+            # if len(ent.text) > 2:
+            if ent.label_ == "PERSON":
+                person_sent = person_sent + ent.text.lower() + ","
+            elif ent.label_ == "GPE":
+                place_sent = place_sent + ent.text.lower() + ","
+            ner_sent_full = ner_sent_full + ent.text.lower() + " "
+            if len(ent.text) > 2 and ent.label_ not in ["CARDINAL", "DATE", "GPE", "LANGUAGE", "LOC", "MONEY",
+                                                        "ORDINAL", "PERCENT", "PERSON",
+                                                        "TIME"] and ent.text.lower() not in news_stopwords_list:
+                ner_sent = ner_sent + ent.text.lower() + " : "
+        ner_dict[k] = ner_sent.strip(" : ").split(" : ")
+        Ner_List = Ner_List + ner_sent.strip(" : ").split(" : ")
+        for token in doc:
+            if token.text.lower() not in news_stopwords_list:
+                tokens_list.append(token.text.lower())
+            if token.pos_ in ["NOUN", "PROPN"] and token.is_stop == False and token.text.lower() not in ner_sent_full and token.text.lower() not in news_stopwords_list:
+                pos_sent = pos_sent + token.text.lower() + " : "
+        token_dict[k] = tokens_list
+        token_list_full = token_list_full + tokens_list
+        pos_dict[k] = pos_sent.strip(" : ").split(" : ")
+        Pos_List = Pos_List + pos_sent.strip(" : ").split(" : ")
         Place_Sentences.append(place_sent.strip(','))
         Person_Sentences.append(person_sent.strip(","))
-        Content_Sentences.append(news)
+        Content_Sentences.append(news_content[k])
     Day_Sentences = df['day'].apply(lambda text: num2words(text)).tolist()
     Month_Sentences = df['month'].tolist()
     Year_Sentences = df['year'].apply(lambda text: num2words(text).replace(' and ', ' ')).tolist()
     Date_Sentences = df['date'].tolist()
-    return Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences
+    unique_token_list_full = list(set(token_list_full))
+    unique_ner_list = list(set(Ner_List))
+    unique_pos_list = list(set(Pos_List))
+    return Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences, docs_dict, title_dict, text_dict, ner_dict, pos_dict, token_dict, unique_ner_list, unique_pos_list, unique_token_list_full
 
 
 def create_nodes_edges_from_hierarchy(parent_cluster_main, parent_count, child_count, level_number, entity_name_list,
@@ -86,36 +123,36 @@ def create_nodes_edges_from_hierarchy(parent_cluster_main, parent_count, child_c
     return nodes_edges, child_count
 
 
-def get_doc_ids_text_ner_from_cluster(news_publisher_title, title, news_content):
-    print("fetching doc ids, text, ner lists form data ...")
-    docs_dict = {}
-    title_dict = {}
-    text_dict = {}
-    ner_dict = {}
-    pos_dict = {}
-    stopwords_df = pd.read_csv("resources/sw1k.csv")
-    news_stopwords_list = stopwords_df["term"].tolist()
-    for k in range(len(news_publisher_title)):
-        title_dict[k] = title[k]
-        docs_dict[k] = news_publisher_title[k]
-        text_dict[k] = news_content[k]
-        ner_sent = ""
-        ner_sent_full = ""
-        pos_sent = ""
-        doc = nlp(news_content[k])
-        for ent in doc.ents:
-            ner_sent_full = ner_sent_full + ent.text + " "
-            if len(ent.text) > 2 and ent.label_ not in ["CARDINAL", "DATE", "GPE", "LANGUAGE", "LOC", "MONEY",
-                                                        "ORDINAL", "PERCENT", "PERSON",
-                                                        "TIME"] and ent.text.lower() not in news_stopwords_list:
-                ner_sent = ner_sent + ent.text + " : "
-        ner_dict[k] = ner_sent.strip(" : ").split(" : ")
-        for token in doc:
-            if token.pos_ in ["NOUN",
-                              "PROPN"] and token.is_stop == False and token.text not in ner_sent_full and token.text.lower() not in news_stopwords_list:
-                pos_sent = pos_sent + token.text + " : "
-        pos_dict[k] = pos_sent.strip(" : ").split(" : ")
-    return docs_dict, title_dict, text_dict, ner_dict, pos_dict
+# def get_doc_ids_text_ner_from_cluster(news_publisher_title, title, news_content):
+#     print("fetching doc ids, text, ner lists form data ...")
+#     docs_dict = {}
+#     title_dict = {}
+#     text_dict = {}
+#     ner_dict = {}
+#     pos_dict = {}
+#     stopwords_df = pd.read_csv("resources/sw1k.csv")
+#     news_stopwords_list = stopwords_df["term"].tolist()
+#     for k in range(len(news_publisher_title)):
+#         title_dict[k] = title[k]
+#         docs_dict[k] = news_publisher_title[k]
+#         text_dict[k] = news_content[k]
+#         ner_sent = ""
+#         ner_sent_full = ""
+#         pos_sent = ""
+#         doc = nlp(news_content[k])
+#         for ent in doc.ents:
+#             ner_sent_full = ner_sent_full + ent.text + " "
+#             if len(ent.text) > 2 and ent.label_ not in ["CARDINAL", "DATE", "GPE", "LANGUAGE", "LOC", "MONEY",
+#                                                         "ORDINAL", "PERCENT", "PERSON",
+#                                                         "TIME"] and ent.text.lower() not in news_stopwords_list:
+#                 ner_sent = ner_sent + ent.text + " : "
+#         ner_dict[k] = ner_sent.strip(" : ").split(" : ")
+#         for token in doc:
+#             if token.pos_ in ["NOUN",
+#                               "PROPN"] and token.is_stop == False and token.text not in ner_sent_full and token.text.lower() not in news_stopwords_list:
+#                 pos_sent = pos_sent + token.text + " : "
+#         pos_dict[k] = pos_sent.strip(" : ").split(" : ")
+#     return docs_dict, title_dict, text_dict, ner_dict, pos_dict
 
 
 def getSplitEntityList(split_entity_list_fromUI, content_depth_needed):

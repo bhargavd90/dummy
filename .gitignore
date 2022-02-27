@@ -2,3 +2,5 @@
 /results_static/
 /resources/
 /title_summary/
+/venv/
+/dbvc.py
