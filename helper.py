@@ -11,12 +11,17 @@ from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 import embeddings
 import pytextrank
+import torch
 
 nlp = spacy.load('en_core_web_md')
 nlp.add_pipe("textrank")
 
 model_name = 'paraphrase-MiniLM-L3-v2'
 model = SentenceTransformer(model_name)
+print('CUDA Device count', torch.cuda.device_count())
+if torch.cuda.device_count() >= 1:
+    device = torch.device("cuda:0")
+    model.to(device)
 
 
 def get_sentences_from_news(df, news_content, news_publisher_title, title, news_content_WO_preprocssing):
