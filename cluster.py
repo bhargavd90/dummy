@@ -26,12 +26,13 @@ def storeHierarchyData():
     news_publisher_title = [x.replace('\\', '') for x in df["publisher_title"].tolist()]
     title = [x.replace('\\', '') for x in df["title"].tolist()]
 
-    Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences, docs_dict, title_dict, text_dict, ner_dict, pos_dict, token_dict, unique_ner_list, unique_pos_list, unique_token_list_full = helper.get_sentences_from_news(
+    Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences, docs_dict, title_dict, text_dict, ner_dict, pos_dict, unique_ner_dict, unique_pos_dict = helper.get_sentences_from_news(
         df, news_content, news_publisher_title, title, news_content_WO_preprocssing)
     cluster_embeddings_dict_full = embeddings.get_cluster_embeddings_full(model_name, Place_Sentences, Person_Sentences,
                                                                           Content_Sentences, Day_Sentences,
                                                                           Month_Sentences,
-                                                                          Year_Sentences, title, umap_flag, umap_dict, token_dict, unique_ner_list, unique_pos_list, unique_token_list_full)
+                                                                          Year_Sentences, title, umap_flag, umap_dict,
+                                                                          unique_ner_dict, unique_pos_dict)
     # docs_dict, title_dict, text_dict, ner_dict, pos_dict = helper.get_doc_ids_text_ner_from_cluster(
     #     news_publisher_title, title,
     #     news_content_WO_preprocssing)
@@ -82,12 +83,18 @@ def generateHierarchy(split_entity_list_fromUI, content_depth_needed, content_ca
     storingAndLoading.store_ui_parameters(ui_parameters)
 
 
-def search_node(search_term):
-    cluster_name_dict = storingAndLoading.dynamic_load_cluster_name_dict_news()  # check for top2vec or wehona
+def search_node(search_term, method_name):
+    if method_name == "Hubble":
+        cluster_name_dict = storingAndLoading.dynamic_load_cluster_name_dict_news()
+    elif method_name == "Voyager":
+        cluster_name_dict = storingAndLoading.dynamic_load_cluster_name_dict_top2vec()
     options = list(cluster_name_dict.values())
     highest = process.extractOne(search_term, options)
-    cluster_label = {k for k, v in cluster_name_dict.items() if v == highest[0]}
-    return "".join(cluster_label).replace("cluster_", "")
+    if highest[1] >= 60:
+        cluster_label = {k for k, v in cluster_name_dict.items() if v == highest[0]}
+        return "".join(cluster_label).replace("cluster_", "")
+    else:
+        return "no_cluster"
 
 
 def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_needed, time_place_weight,
@@ -105,34 +112,81 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
                                                              news_content_length)
     if not clusters_to_furthur_split:
         raise Exception("Unable to find documents for the given filters")
-    weights, possible_content_depth = helper.create_content_weights(len(clusters_to_furthur_split), weights,
+    weights, possible_content_depth, weights_parameters_list = helper.create_content_weights(len(clusters_to_furthur_split), weights,
                                                                     content_capture_needed)
+
+    content_weight_temp = 0.4
+    pos_weight_temp = 0.6
+
+    cluster_selection_epsilon_temp = 0.1
+
+    weights["content_pos"] = {"content_weight": content_weight_temp, "pos_weight": pos_weight_temp}
+
+    for idx in range(possible_content_depth):
+        weights["content"][str(idx + 1)][1]["cluster_selection_epsilon"] = cluster_selection_epsilon_temp
+
     if content_depth_needed > possible_content_depth:  # set max value in ui
         content_depth_needed = possible_content_depth
 
     split_entity_list = helper.getSplitEntityList(split_entity_list_fromUI, content_depth_needed)
     print("splitting data and generating nodes and edges...")
-    parent_cluster_main_phase_1, cluster_info_for_not_clustered_data_dict, clusters_to_furthur_split, Nodes_dict, ids_based_on_labels, entity_name_list, entity_naming_dict, content_depth_now = splitting.split_for_3_levels(
+
+    split_with_size = weights["content"][str(content_depth_now)][1]["min_cluster_size"]
+
+    parent_cluster_main_phase_1, cluster_info_for_not_clustered_data_dict, clusters_to_furthur_split, Nodes_dict, ids_based_on_labels, entity_name_list, entity_naming_dict, content_depth_now, splitted = splitting.split_for_3_levels(
         cluster_embeddings_dict_full, split_entity_list[0], weights, parent_cluster_main_phase_1,
         clusters_to_furthur_split, cluster_info_for_not_clustered_data_dict, Nodes_dict, entity_naming_dict, True,
         content_depth_now, time_place_weight, content_weight)
+
+    if splitted:
+        content_weight_temp = content_weight_temp + 0.1
+        pos_weight_temp = pos_weight_temp - 0.1
+        cluster_selection_epsilon_temp = cluster_selection_epsilon_temp - 0.1
+        if cluster_selection_epsilon_temp < 0:
+            cluster_selection_epsilon_temp = 0
+        if content_weight_temp > 1:
+            content_weight_temp = 1
+        if pos_weight_temp < 0:
+            pos_weight_temp = 0
+        weights["content_pos"] = {"content_weight": content_weight_temp, "pos_weight": pos_weight_temp}
+        for idx in range(possible_content_depth):
+            weights["content"][str(idx + 1)][1]["cluster_selection_epsilon"] = cluster_selection_epsilon_temp
+
     nodes_edges_main, child_count = helper.create_nodes_edges_from_hierarchy(parent_cluster_main_phase_1, 0, 1, 0,
-                                                                             entity_name_list, entity_naming_dict)
+                                                                             entity_name_list, entity_naming_dict, split_with_size)
     for entity_name in split_entity_list[1:]:
-        nodes_edges_main, child_count, clusters_to_furthur_split, Nodes_dict, content_depth_now = splitting.perform_furthur_split_by_entity(
+        nodes_edges_main, child_count, clusters_to_furthur_split, Nodes_dict, content_depth_now, splitted = splitting.perform_furthur_split_by_entity(
             cluster_embeddings_dict_full, weights, entity_name, clusters_to_furthur_split, nodes_edges_main,
             Nodes_dict,
             child_count, cluster_info_for_not_clustered_data_dict, entity_naming_dict, content_depth_now,
             time_place_weight, content_weight)
+
+        if splitted:
+            content_weight_temp = content_weight_temp + 0.1
+            pos_weight_temp = pos_weight_temp - 0.1
+            cluster_selection_epsilon_temp = cluster_selection_epsilon_temp - 0.1
+            if cluster_selection_epsilon_temp < 0:
+                cluster_selection_epsilon_temp = 0
+            if content_weight_temp > 1:
+                content_weight_temp = 1
+            if pos_weight_temp < 0:
+                pos_weight_temp = 0
+            weights["content_pos"] = {"content_weight": content_weight_temp, "pos_weight": pos_weight_temp}
+            for idx in range(possible_content_depth):
+                weights["content"][str(idx + 1)][1]["cluster_selection_epsilon"] = cluster_selection_epsilon_temp
+
     storingAndLoading.storeUseFlat({"useFlat": True})
     nodes_edges_main['docs_dict'], nodes_edges_main['text_dict'] = docs_dict, text_dict
 
-    possible_content_depth_nodes_edges = 0
-    for node in nodes_edges_main['nodes']:
-        if node["level"] > possible_content_depth_nodes_edges:
-            possible_content_depth_nodes_edges = node["level"]
+    # possible_content_depth_nodes_edges = 0
+    # for node in nodes_edges_main['nodes']:
+    #     if node["level"] > possible_content_depth_nodes_edges:
+    #         possible_content_depth_nodes_edges = node["level"]
 
-    nodes_edges_main['possible_content_depth'] = possible_content_depth_nodes_edges
+    # nodes_edges_main['possible_content_depth'] = possible_content_depth_nodes_edges
+
+    nodes_edges_main['possible_content_depth'] = possible_content_depth
+    nodes_edges_main['weights_list'] = weights_parameters_list
 
     nodes_edges_main = filtering.eventRepresentation(nodes_edges_main, title_dict, text_dict, Place_Sentences,
                                                      Person_Sentences,
@@ -141,7 +195,6 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
                                                                        ratio_limit)
 
     nodes_edges_main = helper.find_related_events(nodes_edges_main, cluster_embeddings_dict_full)
-
 
     storingAndLoading.dynamic_store_cluster_name_dict_news(cluster_name_dict)
     storingAndLoading.static_store_cluster_name_dict_news(cluster_name_dict)
@@ -153,10 +206,12 @@ def alter_WEHONA(content_depth_needed):
     static_news = storingAndLoading.load_static_news()
     static_search = storingAndLoading.static_load_cluster_name_dict_news()
     nodes = static_news["nodes"]
+    weights_list = static_news["weights_list"]
+    content_depth_by_weight = static_news["weights_list"][content_depth_needed-1]
     nodes_updated = []
     search_updated = {}
     for node in nodes:
-        if node["level"] <= content_depth_needed:
+        if node["split_with_size"] >= content_depth_by_weight:
             nodes_updated.append(node)
             cluster_number = "cluster_" + str(node["id"])
             search_updated[cluster_number] = static_search[cluster_number]

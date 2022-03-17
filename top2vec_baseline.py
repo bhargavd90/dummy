@@ -43,7 +43,7 @@ def run_Top2Vec():
     parent_cluster_main = create_hierarchical_tree_from_cluster_docs(top2vec_model)
     top2vec_nodes_edges_main, child_count = helper.create_nodes_edges_from_hierarchy(parent_cluster_main, 0, 1, 0,
                                                                                      "",
-                                                                                     "every_node_content")
+                                                                                     "every_node_content", "split_with_size")
     topic_sizes, topic_nums = top2vec_model.get_topic_sizes()
     zip_iterator = zip(topic_nums, topic_sizes)
     topic_num_size_dict = dict(zip_iterator)
@@ -65,6 +65,7 @@ def run_Top2Vec():
             possible_content_depth_nodes_edges = node["level"]
 
     top2vec_nodes_edges_main['possible_content_depth'] = possible_content_depth_nodes_edges
+    top2vec_nodes_edges_main['weights_list'] = "weights_parameters_list"
 
     top2vec_nodes_edges_main = filtering.eventRepresentation(top2vec_nodes_edges_main, title_dict, text_dict,
                                                              Place_Sentences,

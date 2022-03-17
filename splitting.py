@@ -175,11 +175,23 @@ def split_for_3_levels(cluster_embeddings_dict_full, entity_name, weights, paren
         complete_weights[7] = time_place_weight
         complete_weights[8] = content_weight
         hdbscan_dict = weights[entity_name][str(content_depth_now)][1]
+        content_pos_weight = weights["content_pos"]
         cluster_data = [
-            embeddings.get_cluster_embeddings_dict_per_cluster(cluster_embeddings_dict_full, clusters_to_furthur_split),
+            embeddings.get_cluster_embeddings_dict_per_cluster(cluster_embeddings_dict_full, clusters_to_furthur_split,
+                                                               content_pos_weight),
             clusters_to_furthur_split, clusters_to_furthur_split]
         ids_based_on_labels, cluster_info_for_not_clustered_data = perform_split(cluster_data, complete_weights,
                                                                                  hdbscan_dict, is_first)
+
+        if len(ids_based_on_labels) > 1:
+            print(hdbscan_dict["min_cluster_size"])
+            print(content_pos_weight)
+            print(hdbscan_dict["cluster_selection_epsilon"])
+            print(" ")
+            splitted = True
+        else:
+            splitted = False
+
         cluster_info_for_not_clustered_data_dict['Level_1'] = cluster_info_for_not_clustered_data
         for cluster_temp in ids_based_on_labels:
             if cluster_temp != clusters_to_furthur_split or is_first:
@@ -192,20 +204,22 @@ def split_for_3_levels(cluster_embeddings_dict_full, entity_name, weights, paren
         if is_first:
             content_depth_now = content_depth_now + 1
 
-    return parent_cluster_main_phase_1, cluster_info_for_not_clustered_data_dict, clusters_to_furthur_split, Nodes_dict, ids_based_on_labels, entity_name_list, entity_naming_dict, content_depth_now
+    return parent_cluster_main_phase_1, cluster_info_for_not_clustered_data_dict, clusters_to_furthur_split, Nodes_dict, ids_based_on_labels, entity_name_list, entity_naming_dict, content_depth_now, splitted
 
 
 def perform_furthur_split_by_entity(cluster_embeddings_dict_full, weights, entity_name, clusters_to_furthur_split,
                                     nodes_edges_main, Nodes_dict, child_count, cluster_info_for_not_clustered_data_dict,
                                     entity_naming_dict, content_depth_now, time_place_weight, content_weight):
     clusters_to_furthur_split_whole = []
+    splitted_list = []
     for clus_to_spl in clusters_to_furthur_split:
         for key, value in nodes_edges_main['cluster_dict'].items():
             if value == clus_to_spl:
                 parent_count = int(key.split('_')[1]) + 1
                 break
         parent_cluster_node = Nodes_dict[str(clus_to_spl)]
-        parent_cluster_main_phase_1, cluster_info_for_not_clustered_data_dict, clusters_to_furthur_split, Nodes_dict, ids_based_on_labels, entity_name_list, entity_naming_dict, content_depth_now = split_for_3_levels(
+        split_with_size = weights["content"][str(content_depth_now)][1]["min_cluster_size"]
+        parent_cluster_main_phase_1, cluster_info_for_not_clustered_data_dict, clusters_to_furthur_split, Nodes_dict, ids_based_on_labels, entity_name_list, entity_naming_dict, content_depth_now, splitted = split_for_3_levels(
             cluster_embeddings_dict_full, entity_name, weights, parent_cluster_node, clus_to_spl,
             cluster_info_for_not_clustered_data_dict, Nodes_dict, entity_naming_dict, False, content_depth_now,
             time_place_weight, content_weight)
@@ -214,13 +228,18 @@ def perform_furthur_split_by_entity(cluster_embeddings_dict_full, weights, entit
                                                                                     child_count,
                                                                                     parent_cluster_node.depth,
                                                                                     entity_name_list,
-                                                                                    entity_naming_dict)
+                                                                                    entity_naming_dict, split_with_size)
         child_count = child_count_sub
         nodes_edges_main['nodes'] = nodes_edges_main['nodes'] + nodes_edges_sub['nodes']
         nodes_edges_main['edges'] = nodes_edges_main['edges'] + nodes_edges_sub['edges']
         nodes_edges_main['cluster_dict'] = {**nodes_edges_main['cluster_dict'], **nodes_edges_sub['cluster_dict']}
         for clus in clusters_to_furthur_split:
             clusters_to_furthur_split_whole.append(clus)
+        splitted_list.append(splitted)
+        if True in splitted_list:
+            splitted = True
+        else:
+            splitted = False
     if entity_name == "content":
         content_depth_now = content_depth_now + 1
-    return nodes_edges_main, child_count, clusters_to_furthur_split_whole, Nodes_dict, content_depth_now
+    return nodes_edges_main, child_count, clusters_to_furthur_split_whole, Nodes_dict, content_depth_now, splitted

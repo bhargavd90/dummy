@@ -12,6 +12,7 @@ import pandas as pd
 import embeddings
 import pytextrank
 import torch
+from collections import Counter
 
 nlp = spacy.load('en_core_web_md')
 nlp.add_pipe("textrank")
@@ -29,15 +30,13 @@ def get_sentences_from_news(df, news_content, news_publisher_title, title, news_
     Place_Sentences = []
     Person_Sentences = []
     Content_Sentences = []
-    Ner_List = []
-    Pos_List = []
     docs_dict = {}
     title_dict = {}
-    token_list_full = []
     text_dict = {}
     ner_dict = {}
     pos_dict = {}
-    token_dict = {}
+    unique_ner_dict = {}
+    unique_pos_dict = {}
     stopwords_df = pd.read_csv("resources/sw1k.csv")
     news_stopwords_list = stopwords_df["term"].tolist()
     for k in range(len(news_publisher_title)):
@@ -63,16 +62,19 @@ def get_sentences_from_news(df, news_content, news_publisher_title, title, news_
                                                         "TIME"] and ent.text.lower() not in news_stopwords_list:
                 ner_sent = ner_sent + ent.text.lower() + " : "
         ner_dict[k] = ner_sent.strip(" : ").split(" : ")
-        Ner_List = Ner_List + ner_sent.strip(" : ").split(" : ")
+        ctr_3 = Counter(ner_dict[k])
+        most_common_ner_keyword = ctr_3.most_common(5)
+        unique_ner_dict[k] = most_common_ner_keyword
         for token in doc:
             if token.text.lower() not in news_stopwords_list:
                 tokens_list.append(token.text.lower())
-            if token.pos_ in ["NOUN", "PROPN"] and token.is_stop == False and token.text.lower() not in ner_sent_full and token.text.lower() not in news_stopwords_list:
+            if token.pos_ in ["NOUN",
+                              "PROPN"] and token.is_stop == False and token.text.lower() not in ner_sent_full and token.text.lower() not in news_stopwords_list:
                 pos_sent = pos_sent + token.text.lower() + " : "
-        token_dict[k] = tokens_list
-        token_list_full = token_list_full + tokens_list
         pos_dict[k] = pos_sent.strip(" : ").split(" : ")
-        Pos_List = Pos_List + pos_sent.strip(" : ").split(" : ")
+        ctr_4 = Counter(pos_dict[k])
+        most_common_pos_keyword = ctr_4.most_common(5)
+        unique_pos_dict[k] = most_common_pos_keyword
         Place_Sentences.append(place_sent.strip(','))
         Person_Sentences.append(person_sent.strip(","))
         Content_Sentences.append(news_content[k])
@@ -80,14 +82,11 @@ def get_sentences_from_news(df, news_content, news_publisher_title, title, news_
     Month_Sentences = df['month'].tolist()
     Year_Sentences = df['year'].apply(lambda text: num2words(text).replace(' and ', ' ')).tolist()
     Date_Sentences = df['date'].tolist()
-    unique_token_list_full = list(set(token_list_full))
-    unique_ner_list = list(set(Ner_List))
-    unique_pos_list = list(set(Pos_List))
-    return Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences, docs_dict, title_dict, text_dict, ner_dict, pos_dict, token_dict, unique_ner_list, unique_pos_list, unique_token_list_full
+    return Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences, docs_dict, title_dict, text_dict, ner_dict, pos_dict, unique_ner_dict, unique_pos_dict
 
 
 def create_nodes_edges_from_hierarchy(parent_cluster_main, parent_count, child_count, level_number, entity_name_list,
-                                      entity_naming_dict):
+                                      entity_naming_dict, split_with_size):
     cluster_dict = {}
     nodes_list = []
     edges_list = []
@@ -95,7 +94,7 @@ def create_nodes_edges_from_hierarchy(parent_cluster_main, parent_count, child_c
     levels = [[node.name for node in children] for children in LevelOrderGroupIter(parent_cluster_main)]
     if parent_count == 0:
         nodes_list.append(
-            {'id': parent_count, 'label': "cluster_" + str(parent_count), 'level': level_number, "shape": "box"})
+            {'id': parent_count, 'label': "cluster_" + str(parent_count), 'level': level_number, "shape": "box", "split_with_size": split_with_size})
         id_dict[str(levels[0][0])] = parent_count
         cluster_dict["cluster_" + str(parent_count)] = levels[0][0]
     else:
@@ -103,7 +102,7 @@ def create_nodes_edges_from_hierarchy(parent_cluster_main, parent_count, child_c
     for level, parent in enumerate(levels[1:]):
         for child in parent:
             label = "cluster_" + str(child_count)
-            nodes_list.append({'id': child_count, 'label': label, 'level': level_number + level + 1, "shape": "box"})
+            nodes_list.append({'id': child_count, 'label': label, 'level': level_number + level + 1, "shape": "box", "split_with_size": split_with_size})
             id_dict[str(child)] = child_count
             child_count = child_count + 1
             cluster_dict[label] = list(child)
@@ -174,7 +173,7 @@ def create_content_weights(no_of_docs, weights, content_capture_needed):
 
     weights_parameters_list = []
     content_depth_needed = 100
-    mul = no_of_docs / 10
+    mul = no_of_docs / 40
     data = np.arange(0, content_depth_needed, 1)
     probdf = halfnorm.pdf(data, loc=mean, scale=content_capture_needed)
     div = (math.ceil(probdf[0] * 1000))
@@ -188,26 +187,41 @@ def create_content_weights(no_of_docs, weights, content_capture_needed):
             weights_parameters_list.append(now + 1)
 
     content_dict = {}
-    epsilon_list = [1, 0.5, 0]
+
+    # epsilon_list = [1, 0.5, 0]
+
+    # content_weight = 0
+    # pos_weight = 1
+
     for index, min_size in enumerate(weights_parameters_list):
 
-        if index == 0:
-            epsilon = epsilon_list[0]
-        elif index == 1:
-            epsilon = epsilon_list[1]
-        else:
-            epsilon = epsilon_list[2]
+        # content_weight_temp = content_weight + (index * 0.2)
+        # pos_weight_temp = pos_weight - (index * 0.2)
+        #
+        # if content_weight_temp > 1:
+        #     content_weight_temp = 1
+        # if pos_weight_temp < 0:
+        #     pos_weight_temp = 0
+
+        # if index == 0:
+        #     epsilon = epsilon_list[0]
+        # elif index == 1:
+        #     epsilon = epsilon_list[1]
+        # else:
+        #     epsilon = epsilon_list[2]
 
         content_dict[str(index + 1)] = [[0, 0, 0, 0, 1, 0, 0, 0, 1],
                                         {"min_cluster_size": min_size,
                                          # "min_samples": min_size,
                                          "allow_single_cluster": False,
-                                         "cluster_selection_epsilon": epsilon,
-                                         "cluster_selection_method": "eom"}]
+                                         # "cluster_selection_epsilon": epsilon,
+                                         "cluster_selection_method": "eom"},
+                                        # {"content_weight": content_weight_temp, "pos_weight": pos_weight_temp}
+                                        ]
 
     weights["content"] = content_dict
     print("Setting content weights ... ", weights_parameters_list)
-    return weights, len(weights_parameters_list)
+    return weights, len(weights_parameters_list), weights_parameters_list
 
 
 def fetchDocumentstoSplit(text_dict, Date_Sentences, topic_interest_keyword, from_date_keyword, to_date_keyword,
@@ -273,6 +287,7 @@ def generate_custer_summary(news, cluster_no):
 
 
 def find_related_events(nodes_edges_main, cluster_embeddings_dict_full):
+    print("Finding related events ...")
     nodes_list = nodes_edges_main["nodes"]
     nodes_branch_dict = {}
     related_events_dict = {}
@@ -283,7 +298,7 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full):
         nodes_branch_dict["cluster_" + str(node["id"])] = node["colorDict_id"]
     for cluster_no, doc_ids in cluster_dict.items():
         cluster_embeddings_dict_per_cluster = embeddings.get_cluster_embeddings_dict_per_cluster(
-            cluster_embeddings_dict_full, doc_ids)
+            cluster_embeddings_dict_full, doc_ids, {"content_weight": 1, "pos_weight": 0})
         weighted_embeddings = embeddings.get_weighted_embeddings(cluster_embeddings_dict_per_cluster,
                                                                  [0, 0, 0, 0, 1, 0, 0, 0, 1])
         cluster_centroid = np.mean(weighted_embeddings, axis=0)
@@ -303,10 +318,11 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full):
         for sim_value in sim_list_sorted:
             index_of_highest_similarity = sim_list.index(sim_value)
             to_cluster = cluster_names[index_of_highest_similarity]
-            if sim_value == 1 or nodes_branch_dict[for_cluster] == nodes_branch_dict[to_cluster] or index_of_highest_similarity == 0:
+            if sim_value == 1 or nodes_branch_dict[for_cluster] == nodes_branch_dict[
+                to_cluster] or index_of_highest_similarity == 0:
                 continue
 
-            if count > 2 or sim_value < 0.5:
+            if count > 2 or sim_value < 0.6:
                 break
             else:
                 to_cluster_list.append(to_cluster)

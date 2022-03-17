@@ -15,14 +15,20 @@ var news_path;
 var summary;
 var n_list = [];
 
+var current_image_no = 0;
+
+var images_list = ["/images/news_1.jpg", "/images/news_2.jpg", "/images/news_3.jpg", "/images/news_4.jpg", "/images/news_5.jpg"]
+
 var modal_news = document.getElementById('modalNews');
 var modal_news_content = document.getElementById('modalNewsContent');
 var modal_news_header = document.getElementById('modalNewsHeader');
 var modal_settings = document.getElementById('modalSettings');
 var modal_settings_content = document.getElementById('modalSettingsContent');
 var modal_settings_header = document.getElementById('modalSettingsHeader');
+var modal_info = document.getElementById('modalInfo');
 var close_news = document.getElementsByClassName("close_news")[0];
 var close_settings = document.getElementsByClassName("close_settings")[0];
+var close_info = document.getElementsByClassName("close_info")[0];
 
 var slider1 = document.getElementById("myRange1");
 var output1 = document.getElementById("demo1");
@@ -32,6 +38,10 @@ output1.innerHTML = slider1.value;
 output2.innerHTML = slider2.value;
 var not_from_slider = true
 
+
+function addClusterNo(params){
+document.getElementById('event_representation_header').textContent = ": Cluster No - " + params.nodes[0];
+}
 
 function addWhat(params){
 title_in_cluster = title_dict["Title_"+"cluster_" + params.nodes[0].toString()]
@@ -101,10 +111,10 @@ related_events_in_cluster = related_events["cluster_" + params.nodes[0].toString
 
 var showRelatedEvent = function() {
     var options_2 = {
-    scale: 2,
+    scale: 0.2,
     offset: { x: 0, y: 0},
     animation: {
-      duration: 5000,
+      duration: 100,
       easingFunction: "linear",
     },
   };
@@ -147,7 +157,7 @@ var showRelatedEvent = function() {
 
 function addSummary(params){
   document.getElementById('summary_button').style.display = "none";
-  var python_url = 'http://127.0.0.1:5000/get_summary_for_cluster';
+  var python_url = 'http://127.0.0.1:8080/get_summary_for_cluster';
   var cluster_method_no = '?cluster_method_no=' + document.getElementById("cluster_method_list").value + ":" + "cluster_" + params.nodes[0].toString();
   $.ajax({
     url: python_url + cluster_method_no,
@@ -185,6 +195,7 @@ function click(){
   network.on("click", function (params) {
     clicked_node = params.nodes[0]
     if (typeof clicked_node !== 'undefined'){
+        addClusterNo(params);
         addWhat(params);
         addWho(params);
         addWhen(params);
@@ -254,6 +265,7 @@ else if (document.getElementById("cluster_method_list").value == "Voyager"){
 //      tooltipDelay: 200,
 //      hideEdgesOnDrag: true,
 //      hideEdgesOnZoom: true,
+      zoomView: $('#zoom_view_checkbox').is(':checked')
     },
 
   layout: {
@@ -324,6 +336,15 @@ close_settings.onclick = function() {
     set_entity_names();
 }
 
+close_info.onclick = function() {
+    modal_info.style.display = "none";
+    document.getElementById('hierarchicalStructure').style.filter = "blur(0)";
+    document.getElementById('displayInfo').style.filter = "blur(0)";
+    document.getElementById('mainHeader').style.filter = "blur(0)";
+    document.body.style.backgroundColor = "white";
+    set_entity_names();
+}
+
 function set_entity_names(){
 
 //var entity_names_div = document.getElementById("checkboxId")
@@ -349,8 +370,17 @@ function openSettings(){
 //     document.getElementById("tablinks_place_id").click();
 }
 
+function openInfo(){
+     document.getElementById('hierarchicalStructure').style.filter = "blur(2px)";
+     document.getElementById('displayInfo').style.filter = "blur(2px)";
+     document.getElementById('mainHeader').style.filter = "blur(2px)";
+     document.body.style.backgroundColor = "DimGrey";
+     modal_info.style.display = "block";
+//     document.getElementById("tablinks_place_id").click();
+}
+
 function generateHierarchy(){
-var python_url = 'http://127.0.0.1:5000/generate_hierarchy';
+var python_url = 'http://127.0.0.1:8080/generate_hierarchy';
 var split_entity_string = "";
 $("input:checkbox[name=constraint]:checked").each(function () {
             split_entity_string = split_entity_string + $(this).attr("id") + ":";
@@ -383,7 +413,7 @@ success: function(data){
           text: " ",
           icon: "success",
           buttons: false,
-          timer: 1500,
+          timer: 1000,
           closeOnClickOutside: false
         })
 //        swal.stopLoading();
@@ -420,22 +450,35 @@ function cluster_method_change(){
 
 function search_focus_node(){
   var options_2 = {
-    scale: 2,
+    scale: 0.2,
     offset: { x: 0, y: 0},
     animation: {
-      duration: 5000,
+      duration: 100,
       easingFunction: "linear",
     },
   };
-  var python_url = 'http://127.0.0.1:5000/search_node';
+  var python_url = 'http://127.0.0.1:8080/search_node';
   var search_term = '?search_term=' + document.getElementById("search_node").value;
+  var method_name = '&method_name=' + document.getElementById("cluster_method_list").value;
   $.ajax({
-    url: python_url + search_term,
+    url: python_url + search_term + method_name,
     type: 'GET',
     success: function(data){
         if(typeof +data == "number"){
-             network.focus(data, options_2);
-             network.selectNodes([data], true);
+            if(data == "no_cluster"){
+                swal({
+          title: "Could not find a matching cluster",
+          text: " ",
+          icon: "error",
+          buttons: false,
+          timer: 1000,
+          closeOnClickOutside: false
+        })
+            }
+            else {
+                network.focus(data, options_2);
+                network.selectNodes([data], true);
+            }
             }
         else{
             swal({
@@ -443,7 +486,7 @@ function search_focus_node(){
           text: " ",
           icon: "error",
           buttons: false,
-          timer: 2000,
+          timer: 1000,
           closeOnClickOutside: false
         })
             }
@@ -490,6 +533,7 @@ function set(elm, val) {
 
 
 function reset_event_representation_news_content(){
+document.getElementById("event_representation_header").innerHTML = "";
 document.getElementById("hierarchicalStructure").innerHTML = "";
 document.getElementById("what_content").innerHTML = "Title";
 document.getElementById("first_who_content").innerHTML = "Person";
@@ -626,5 +670,24 @@ function addEventListeners() {
   });
 }
 
+
+
+function prevImage(){
+    current_image_no = current_image_no - 1;
+    if(current_image_no < 0){
+        current_image_no = 0
+    }
+    let img_path = images_list[current_image_no];
+    document.getElementById("modal_images").src = img_path;
+}
+
+function nextImage(){
+    current_image_no = current_image_no + 1;
+    if(current_image_no > images_list.length-1){
+        current_image_no = images_list.length-1
+    }
+    let img_path = images_list[current_image_no];
+    document.getElementById("modal_images").src = img_path;
+}
 
 

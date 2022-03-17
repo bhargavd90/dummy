@@ -41,7 +41,6 @@
 <!--            </div>-->
         </div>
 
-
         <div id = "filtering">
             <div id="topic_interest" class="topic_interest">
                 <strong>Topic Of Interest &nbsp&nbsp: &nbsp&nbsp</strong><input type="text" placeholder="Topic / Person / Place ..." title="All documents will be displayed if the field is empty" id="topic_interest_keyword">
@@ -64,6 +63,17 @@
 
 
         <span class="close_settings">&times;</span>
+    </div>
+
+    <div id="modalInfo" class="modal">
+        <h3 style="text-align: center; padding-right: 10px;">Tour</h3>
+        <img id = "modal_images" src="/images/news_1.jpg">
+        <br>
+
+        <button type="submit" class = "prev" onclick= "prevImage()">&#8249;</button>
+        <button type="submit" class = "next" onclick= "nextImage()">&#8250;</button>
+<!--        <img src="/images/news_2.jpg" width="300" height="200">-->
+        <span class="close_info">&times;</span>
     </div>
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.js"></script>
@@ -96,13 +106,21 @@
 <!--        <div id="checkboxId" class="checkboxClass">-->
 <!--        </div>-->
         <div id="hierarchy_display">
-                Hierarchical Display :&nbsp<input type="checkbox" id="hierarchy_display_checkbox" onchange="displayTree();reset_event_representation_news_content()"checked>
+                HD :&nbsp<input type="checkbox" id="hierarchy_display_checkbox" onchange="displayTree();reset_event_representation_news_content()"checked>
+        </div>
+        <div id="zoom_view">
+                ZV :&nbsp<input type="checkbox" id="zoom_view_checkbox" onchange="displayTree();reset_event_representation_news_content()"checked>
         </div>
 
         <button type="button" class = "button" onclick= "set_content_depth();generateHierarchy()"><strong>Generate Hierarchy</strong></button>
 
 <!--    <span style = "display: inline-block; font-size : 15px; margin-left: 210px;">(Advanced)</span>-->
+
     <i class="bi bi-gear-fill" id = 'settings' onclick= "openSettings()"></i>
+
+    <i class="bi bi-info-circle-fill" id = 'take_tour' onclick= "openInfo()"></i>
+
+
     </h1>
 </header>
 
@@ -115,7 +133,9 @@
 <div id="displayInfo">
 
     <div id="eventRepresentation">
-        <div style="margin-bottom: 30px; font-size: 20px;"><strong>Event Representation</strong></div>
+        <div style="margin-bottom: 30px; font-size: 20px;"><strong>Event Representation</strong>
+            <strong><div id="event_representation_header"></div></strong>
+        </div>
         <br>
         <div style="margin-bottom: 30px;"><strong>What <i class="bi bi-question-octagon"></i> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: </strong>
             <div class="dropdownWithoutEffectWhat"> <strong><div id="what_content">Title</div></strong></div>

@@ -9,14 +9,27 @@ import re
 def get_news_data():
     print("fetching data ...")
     df_original = pd.read_parquet("datasets/uci_news.snappy.parquet")
+
+    df_toy = pd.read_csv("datasets/Toy_Dataset_Thesis - Sheet1.csv", header=None)
+    df_original = df_original[['title', 'publisher', 'main_content', 'timestamp']]
+    toy_dataset_ids = []
+    for _, row in df_toy.iterrows():
+        ids_string = row[1]
+        ids_list = ids_string.split(",")
+        for id in ids_list:
+            toy_dataset_ids.append(int(id.strip()))
+    df_original = df_original[df_original.index.isin(toy_dataset_ids)]
     df_original.reset_index(inplace=True)
-    df1 = df_original[['title', 'publisher', 'main_content', 'timestamp']][0:200]
-    df2 = df_original[['title', 'publisher', 'main_content', 'timestamp']][1000:1200]
-    df3 = df_original[['title', 'publisher', 'main_content', 'timestamp']][2000:2200]
-    df4 = df_original[['title', 'publisher', 'main_content', 'timestamp']][3000:3200]
-    df5 = df_original[['title', 'publisher', 'main_content', 'timestamp']][4000:4200]
-    df = pd.concat([df1, df2, df3, df4, df5])
-    # df = df_original
+
+    # df_original.reset_index(inplace=True)
+    # df1 = df_original[['title', 'publisher', 'main_content', 'timestamp']][0:200]
+    # df2 = df_original[['title', 'publisher', 'main_content', 'timestamp']][1000:1200]
+    # df3 = df_original[['title', 'publisher', 'main_content', 'timestamp']][2000:2200]
+    # df4 = df_original[['title', 'publisher', 'main_content', 'timestamp']][3000:3200]
+    # df5 = df_original[['title', 'publisher', 'main_content', 'timestamp']][4000:4200]
+    # df = pd.concat([df1, df2, df3, df4, df5])
+
+    df = df_original
     df["publisher_title"] = df["publisher"] + ' - ' + df["title"]
     return df
 

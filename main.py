@@ -39,8 +39,12 @@ def generate_hierarchy():
 def search_node():
     try:
         search_term = request.args.get('search_term')
-        nodeId = cluster.search_node(search_term)
-        return nodeId
+        method_name = request.args.get('method_name')
+        if search_term.isnumeric():
+            return search_term
+        else:
+            nodeId = cluster.search_node(search_term, method_name)
+            return nodeId
     except Exception as err:
         print("error while searching for a news cluster : ", err)
         return str(err)
@@ -53,4 +57,4 @@ def get_summary_for_cluster():
     return cluster_summary
 
 
-app.run(host='127.0.0.1', port='5000', debug=True)
+app.run(host='127.0.0.1', port='8080')

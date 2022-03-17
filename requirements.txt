@@ -86,3 +86,11 @@ urllib3==1.26.8
 wasabi==0.9.0
 Werkzeug==2.0.2
 wordcloud==1.8.1
+
+
+# -f https://download.pytorch.org/whl/cu102/torch_stable.html
+# torch==1.10.2+cu102
+# -f https://download.pytorch.org/whl/cu102/torch_stable.html
+# torchvision==0.11.3+cu102
+# -f https://download.pytorch.org/whl/cu102/torch_stable.html
+# torchaudio===0.10.2+cu102
