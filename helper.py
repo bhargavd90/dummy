@@ -13,6 +13,7 @@ import embeddings
 import pytextrank
 import torch
 from collections import Counter
+from sklearn.metrics.pairwise import cosine_similarity
 
 nlp = spacy.load('en_core_web_md')
 nlp.add_pipe("textrank")
@@ -82,7 +83,9 @@ def get_sentences_from_news(df, news_content, news_publisher_title, title, news_
     Month_Sentences = df['month'].tolist()
     Year_Sentences = df['year'].apply(lambda text: num2words(text).replace(' and ', ' ')).tolist()
     Date_Sentences = df['date'].tolist()
-    return Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences, docs_dict, title_dict, text_dict, ner_dict, pos_dict, unique_ner_dict, unique_pos_dict
+    Time_Sentences = df['time'].tolist()
+    Category_Sentences = df['category'].tolist()
+    return Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences, Time_Sentences, Category_Sentences, docs_dict, title_dict, text_dict, ner_dict, pos_dict, unique_ner_dict, unique_pos_dict
 
 
 def create_nodes_edges_from_hierarchy(parent_cluster_main, parent_count, child_count, level_number, entity_name_list,
@@ -94,7 +97,8 @@ def create_nodes_edges_from_hierarchy(parent_cluster_main, parent_count, child_c
     levels = [[node.name for node in children] for children in LevelOrderGroupIter(parent_cluster_main)]
     if parent_count == 0:
         nodes_list.append(
-            {'id': parent_count, 'label': "cluster_" + str(parent_count), 'level': level_number, "shape": "box", "split_with_size": split_with_size})
+            {'id': parent_count, 'label': "cluster_" + str(parent_count), 'level': level_number, "shape": "box",
+             "split_with_size": split_with_size})
         id_dict[str(levels[0][0])] = parent_count
         cluster_dict["cluster_" + str(parent_count)] = levels[0][0]
     else:
@@ -102,7 +106,8 @@ def create_nodes_edges_from_hierarchy(parent_cluster_main, parent_count, child_c
     for level, parent in enumerate(levels[1:]):
         for child in parent:
             label = "cluster_" + str(child_count)
-            nodes_list.append({'id': child_count, 'label': label, 'level': level_number + level + 1, "shape": "box", "split_with_size": split_with_size})
+            nodes_list.append({'id': child_count, 'label': label, 'level': level_number + level + 1, "shape": "box",
+                               "split_with_size": split_with_size})
             id_dict[str(child)] = child_count
             child_count = child_count + 1
             cluster_dict[label] = list(child)
@@ -194,7 +199,6 @@ def create_content_weights(no_of_docs, weights, content_capture_needed):
     # pos_weight = 1
 
     for index, min_size in enumerate(weights_parameters_list):
-
         # content_weight_temp = content_weight + (index * 0.2)
         # pos_weight_temp = pos_weight - (index * 0.2)
         #
@@ -290,12 +294,14 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full):
     print("Finding related events ...")
     nodes_list = nodes_edges_main["nodes"]
     nodes_branch_dict = {}
+    nodes_color_dict = {}
     related_events_dict = {}
     cluster_centroids_dict = {}
     cluster_centroids_list = []
     cluster_dict = nodes_edges_main["cluster_dict"]
     for node in nodes_list:
         nodes_branch_dict["cluster_" + str(node["id"])] = node["colorDict_id"]
+        nodes_color_dict["cluster_" + str(node["id"])] = node["color"]["background"]
     for cluster_no, doc_ids in cluster_dict.items():
         cluster_embeddings_dict_per_cluster = embeddings.get_cluster_embeddings_dict_per_cluster(
             cluster_embeddings_dict_full, doc_ids, {"content_weight": 1, "pos_weight": 0})
@@ -325,10 +331,26 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full):
             if count > 2 or sim_value < 0.6:
                 break
             else:
-                to_cluster_list.append(to_cluster)
+                to_cluster_list.append([to_cluster, nodes_color_dict[to_cluster]])
                 count = count + 1
 
         related_events_dict[for_cluster] = to_cluster_list
     related_events_dict["cluster_0"] = []
     nodes_edges_main["related_events"] = related_events_dict
+    return nodes_edges_main
+
+
+def create_cluster_match(nodes_edges_main, cluster_embeddings_dict_full):
+    cluster_centroids_dict = {}
+    content_embeddings = cluster_embeddings_dict_full["content_embeddings"]
+    cluster_dict = nodes_edges_main["cluster_dict"]
+    for key, value in cluster_dict.items():
+        sim_to_center = {}
+        cluster_mean = np.mean(content_embeddings[[value]], axis=0).reshape(1, -1)
+        for id in value:
+            emb = content_embeddings[[id]]
+            sim = cosine_similarity(cluster_mean, emb)[0][0]
+            sim_to_center[str(id)] = sim
+        cluster_centroids_dict[key] = sim_to_center
+    nodes_edges_main["cluster_centroids_dict"] = cluster_centroids_dict
     return nodes_edges_main

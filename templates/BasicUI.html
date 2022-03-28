@@ -66,12 +66,15 @@
     </div>
 
     <div id="modalInfo" class="modal">
-        <h3 style="text-align: center; padding-right: 10px;">Tour</h3>
-        <img id = "modal_images" src="/images/news_1.jpg">
+        <h3 style="text-align: center; padding-right: 10px;">Quick Tour</h3>
+        <img id = "modal_images" src="/images/image_1.png">
         <br>
 
-        <button type="submit" class = "prev" onclick= "prevImage()">&#8249;</button>
-        <button type="submit" class = "next" onclick= "nextImage()">&#8250;</button>
+        <button type="submit" id = "prev" class = "prev" onclick= "prevImage()">&#8249;</button>
+        <button type="submit" id = "next" class = "next" onclick= "nextImage()">&#8250;</button>
+        <span id = "img_no">1</span>
+        <span id = "total_images">of  5</span>
+
 <!--        <img src="/images/news_2.jpg" width="300" height="200">-->
         <span class="close_info">&times;</span>
     </div>
@@ -84,8 +87,20 @@
 
 <header id="mainHeader">
     <h1 style="padding-left: 5px;">
-    <i class="bi bi-diagram-3-fill" style="color:FireBrick" ></i>
-    WEHONA
+<!--    <i class="bi bi-diagram-3-fill" style="color:FireBrick" ></i>-->
+<!--    <span style="color:#7B241C">W</span>-->
+<!--    <span style="color:#633974">E</span>-->
+<!--    <span style="color:#1A5276">H</span>-->
+<!--    <span style="color:#117864">O</span>-->
+<!--    <span style="color:#9A7D0A">N</span>-->
+<!--    <span style="color:#212F3C">A</span>-->
+
+    <span style="color:black">W</span>
+    <span style="color:black">E</span>
+    <span style="color:black">H</span>
+    <span style="color:black">O</span>
+    <span style="color:black">N</span>
+    <span style="color:black">A</span>
 <!--    <span style = "display: inline-block; font-size : 15px;">(Weighted Entity Hierarchy of News Articles)</span>-->
 
         <div id="cluster_method">
@@ -97,28 +112,42 @@
         </div>
 
         <div id = "content_depth">
-                <strong>Coarseness &nbsp&nbsp: &nbsp&nbsp</strong> <input type="range" min="1" max="1000" step = 1 value="1000" class="slider" id="content_depth_number" onchange="content_depth_slider_onchange();generateHierarchy()">
+                <strong>Granularity &nbsp&nbsp: &nbsp&nbsp</strong> <input type="range" min="1" max="1000" step = 1 value="1000" class="slider" id="content_depth_number" onchange="content_depth_slider_onchange();generateHierarchy()">
         </div>
 
-        <input type="text" placeholder="Search.." id="search_node" onkeydown="key_down(event)">
-        <button type="submit" class = "search_button" onclick= "search_focus_node()"><i class="bi bi-search"></i></button>
+        <input type="text" placeholder="Search..." id="search_node" onkeydown="key_down(event)">
+<!--        <button type="submit" class = "search_button" onclick= "search_focus_node()"><i class="bi bi-search"></i></button>-->
 
 <!--        <div id="checkboxId" class="checkboxClass">-->
 <!--        </div>-->
-        <div id="hierarchy_display">
-                HD :&nbsp<input type="checkbox" id="hierarchy_display_checkbox" onchange="displayTree();reset_event_representation_news_content()"checked>
-        </div>
-        <div id="zoom_view">
-                ZV :&nbsp<input type="checkbox" id="zoom_view_checkbox" onchange="displayTree();reset_event_representation_news_content()"checked>
-        </div>
 
-        <button type="button" class = "button" onclick= "set_content_depth();generateHierarchy()"><strong>Generate Hierarchy</strong></button>
+
+<!--        <button type="button" class = "button" onclick= "set_content_depth();generateHierarchy()"><strong>Run</strong></button>-->
 
 <!--    <span style = "display: inline-block; font-size : 15px; margin-left: 210px;">(Advanced)</span>-->
 
-    <i class="bi bi-gear-fill" id = 'settings' onclick= "openSettings()"></i>
 
-    <i class="bi bi-info-circle-fill" id = 'take_tour' onclick= "openInfo()"></i>
+
+    <i class="bi bi-gear-fill" id = 'settings' title="Settings" onclick= "openSettings()"></i>
+
+    <i class="bi bi-info-circle-fill" id = 'take_tour' title="Take Tour" onclick= "openInfo()"></i>
+
+    <i class="bi bi-chat-text-fill" id = 'user_study' title="User Study" onclick= "openUserStudy()"></i>
+
+        <div id="hierarchy_display">
+            <i class="bi bi-diagram-3" style="font-size:20px" ></i>
+                &nbsp:&nbsp<input type="checkbox" id="hierarchy_display_checkbox" onchange="displayTree();reset_event_representation_news_content()"checked>
+        </div>
+        <div id="zoom_view">
+            <i class="bi bi-zoom-in" style="font-size:20px" ></i>
+                &nbsp:&nbsp<input type="checkbox" id="zoom_view_checkbox" onchange="displayTree();reset_event_representation_news_content()"checked>
+        </div>
+        <div id="search_availability">
+            <i class="bi bi-search" style="font-size:20px" ></i>
+                &nbsp:&nbsp<input type="checkbox" id="search_availability_checkbox" onchange="alter_search_bar()"checked>
+        </div>
+
+
 
 
     </h1>
@@ -134,7 +163,7 @@
 
     <div id="eventRepresentation">
         <div style="margin-bottom: 30px; font-size: 20px;"><strong>Event Representation</strong>
-            <strong><div id="event_representation_header"></div></strong>
+            <strong><div id="event_representation_header">Cluster No</div></strong>
         </div>
         <br>
         <div style="margin-bottom: 30px;"><strong>What <i class="bi bi-question-octagon"></i> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: </strong>

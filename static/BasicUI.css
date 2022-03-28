@@ -47,6 +47,7 @@
     height: 710px;
     border: 2px solid gray;
     border-radius : 10px;
+    margin-top: 10px;
     /*background-color: #ffffff;*/
 }
 
@@ -59,8 +60,10 @@
 }*/
 
 header {
-    height: 65px;
-    /*background-color: #eceff1;*/
+    /*height: 65px;*/
+    background-color: LightSlateGrey;
+    border: 2px solid gray;
+    border-radius: 10px;
   }
 
 body{
@@ -91,6 +94,7 @@ body{
     padding-top: 5px;
     border-radius : 10px;
     margin-bottom: 3px;
+    margin-top: 10px;
 }
 
 #newsArticles {
@@ -149,7 +153,7 @@ body{
     left: 0;
     right: 0;
     width: 50%; /* Full width */
-    height: 73%; /* Full height */
+    height: 75%; /* Full height */
     background-color: white; /* Black w/ opacity */
     border: 2px solid #888;
     margin: auto;
@@ -226,10 +230,19 @@ body{
     cursor: pointer;
 }
 
+.cluster{
+    background-color: silver;
+    border-radius: 5px;
+    padding: 5px;
+    margin-top: 10px;
+    margin-right: 5px;
+}
+
 .cluster:hover,
 .cluster:focus {
-    color: DarkBlue;
-    text-decoration: underline ;
+    /*color: DarkBlue;*/
+    background-color: #7CB9E8;
+    /*text-decoration: underline;*/
     cursor: pointer;
 }
 
@@ -249,16 +262,16 @@ margin:0.25em;
   margin-left: 50px;
   border: 1.5px solid black;
   border-radius : 10px;
-  padding: 2px 5px 2px 5px;
-  background-color:#7CB9E8;
+  padding: 3px 8px 3px 8px;
+  background-color:silver;
 }
 
 .dropdown-content {
   display: none;
   position: absolute;
-  background-color: white;
-  width: 120px;
-  height: 60px;
+  background-color: gainsboro;
+  width: 140px;
+  height: 80px;
   box-shadow: 0px 0px 0px 0px rgba(0,0,0,0.2);
   overflow : auto;
   border: 1.5px solid black;
@@ -276,7 +289,7 @@ margin:0.25em;
 .dropdown:hover,
 .dropdown:focus {
     /*background-color: LightSteelBlue;*/
-    background-color: DarkSeaGreen;
+    background-color: #7CB9E8;
     cursor: pointer;
     transform: scale(1.5);
     z-index : 1;
@@ -323,7 +336,7 @@ margin:0.25em;
  position: relative;
 }
 
-#content_capture,  #hierarchy_display, #zoom_view{
+#content_capture{
  font-size: 16px;
  display : inline-block;
  padding: 10px;
@@ -349,12 +362,13 @@ margin:0.25em;
 }
 
 #search_node{
+    display: inline-flex;
  font-size: 16px;
  padding: 14px;
- border: 2px solid gray;
+ border: 1px solid gray;
  border-radius : 10px;
- margin-left: 0px;
- background-color: Gainsboro;
+ margin-left: 3px;
+ background-color: White;
 }
 
 #topic_interest_keyword{
@@ -477,6 +491,7 @@ transform: translateY(1px);
 float: right;
 padding-right : 5px;
 cursor: pointer;
+    margin-left:10px;
 }
 
 #settings:hover{
@@ -491,6 +506,7 @@ transform: translateY(2px);
 float: right;
 padding-right : 5px;
 cursor: pointer;
+    margin-left: 10px;
 }
 
 #take_tour:hover{
@@ -498,6 +514,21 @@ transform: translateY(2px);
 }
 
 #take_tour:active {
+  transform: translateY(4px);
+}
+
+#user_study{
+float: right;
+padding-right : 5px;
+cursor: pointer;
+    margin-left: 30px;
+}
+
+#user_study:hover{
+transform: translateY(2px);
+}
+
+#user_study:active {
   transform: translateY(4px);
 }
 
@@ -611,31 +642,33 @@ font-size: 20px;
 margin: 5px;
 }
 
-#hierarchy_display, #zoom_view{
+#hierarchy_display, #zoom_view, #search_availability{
 display :inline-block;
-border:2px solid gray;
+border:1px solid gray;
 border-radius:10px;
 text-align : center;
 padding: 12.5px;
-background-color: Gainsboro;
+background-color: White;
 font-size: 16px;
-margin: 5px;
+float: right;
+margin-bottom: 10px;
+margin-left: 10px;
 }
 
 #content_depth{
 display :inline-flex;
-border:2px solid gray;
+border:1px solid gray;
 border-radius:10px;
 text-align : center;
 padding: 14px;
 background-color: White;
 font-size: 16px;
-margin-left: 5px;
+margin-left: 15px;
 }
 
 #cluster_method{
     display :inline;
-    border:2px solid gray;
+    border:1px solid gray;
     border-radius:10px;
     text-align : center;
     padding: 14px 6px 14px 2px;
@@ -691,10 +724,19 @@ ul {
     list-style-type: none;
 }
 
-#hierarchy_display_checkbox, #zoom_view_checkbox{
+#hierarchy_display_checkbox, #zoom_view_checkbox, #search_availability_checkbox{
     font-size:30px;
 }
 
+#event_representation_header{
+    position: relative;
+  display: inline-block;
+  margin-left: 10px;
+  border: 1.5px solid black;
+  border-radius : 10px;
+  padding: 3px 8px 3px 8px;
+  background-color:silver;
+}
 
 
 .related_events{
@@ -707,7 +749,7 @@ ul {
   border: 1.5px solid black;
   border-radius: 10px;
   margin-right: 5px;
-  padding : 4px;
+  padding: 3px 8px 3px 8px;
 
 }
 
@@ -733,12 +775,14 @@ transform: translateY(1px);
   margin-right: auto;
   width: 80%;
   height:70%;
+    border: 2px solid grey;
+    border-radius: 5px;
 }
 
 
 .prev{
   padding: 8px 16px;
-  font-size: 20px;
+  font-size: 25px;
   text-align: center;
   cursor: pointer;
   outline: none;
@@ -753,7 +797,7 @@ transform: translateY(1px);
 
 .next{
   padding: 8px 16px;
-  font-size: 20px;
+  font-size: 25px;
   text-align: center;
   cursor: pointer;
   outline: none;
@@ -778,3 +822,91 @@ transform: translateY(1px);
   transform: translateY(3px);
 }
 
+h1 {
+display: block;
+font-size: 2em;
+margin-block-start: 8px;
+margin-block-end: 5px;
+margin-inline-start: 0px;
+margin-inline-end: 0px;
+font-weight: bold;
+}
+
+#img_no{
+    display: inline-block;
+    font-size: 16px;
+    font-weight: bold;
+    margin-left: 30px;
+    opacity: 0.5;
+}
+
+#total_images{
+    display: inline-block;
+    font-size: 16px;
+    font-weight: bold;
+    opacity: 0.5;
+}
+
+.circle_fill{
+    font-size: 8px;
+    color: orange;
+    margin-right: 2px;
+}
+
+.circle{
+    font-size: 8px;
+    color: gray;
+    margin-right: 2px;
+}
+
+.category{
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 2px 5px 2px 5px;
+    background-color: beige;
+    /*width: 10%;*/
+    display: inline-block;
+    text-align: center;
+}
+
+.dateTime{
+    display: inline-block;
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 2px 5px 2px 5px;
+    background-color: beige;
+    /*width: 10%;*/
+    text-align: center;
+    margin-left: 30px;
+}
+
+.clusterMatch{
+    display: inline-block;
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 2px 5px 2px 5px;
+    background-color: beige;
+    /*width: 10%;*/
+    text-align: center;
+    margin-left: 30px;
+}
+.catDatCluDiv{
+    margin-top: 10px;
+}
+.keywords{
+    margin-top: 10px;
+}
+
+.clock, .tag{
+    font-size: 10px;
+}
+.key{
+    display: inline-block;
+    margin-left: 5px;
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 2px 5px 2px 5px;
+    background-color: azure;
+    text-align: center;
+    font-style: italic;
+}

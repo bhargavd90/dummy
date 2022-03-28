@@ -4,7 +4,7 @@ from numpyencoder import NumpyEncoder
 
 
 def storeData(Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences,
-              Date_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict,
+              Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict,
               news_content_length, top2vec_model):
     print("storing data ...")
     with open('resources/place_sentences', 'wb') as fp:
@@ -21,6 +21,10 @@ def storeData(Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentence
         pickle.dump(Year_Sentences, fp)
     with open('resources/date_sentences', 'wb') as fp:
         pickle.dump(Date_Sentences, fp)
+    with open('resources/time_sentences', 'wb') as fp:
+        pickle.dump(Time_Sentences, fp)
+    with open('resources/category_sentences', 'wb') as fp:
+        pickle.dump(Category_Sentences, fp)
     with open('resources/cluster_embeddings_dict_full.json', 'wb') as fp:
         pickle.dump(cluster_embeddings_dict_full, fp)
     with open('resources/docs_dict', 'wb') as fp:
@@ -55,6 +59,10 @@ def loadData():
         Year_Sentences = pickle.load(fp)
     with open('resources/date_sentences', 'rb') as fp:
         Date_Sentences = pickle.load(fp)
+    with open('resources/time_sentences', 'rb') as fp:
+        Time_Sentences = pickle.load(fp)
+    with open('resources/category_sentences', 'rb') as fp:
+        Category_Sentences = pickle.load(fp)
     with open('resources/cluster_embeddings_dict_full.json', 'rb') as fp:
         cluster_embeddings_dict_full = pickle.load(fp)
     with open('resources/docs_dict', 'rb') as fp:
@@ -74,7 +82,7 @@ def loadData():
     with open('resources/top2vec_model', 'rb') as fp:
         top2vec_model = pickle.load(fp)
     return Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, \
-           Date_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model
+           Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model
 
 
 def loadColors():

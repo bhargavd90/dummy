@@ -26,7 +26,7 @@ def storeHierarchyData():
     news_publisher_title = [x.replace('\\', '') for x in df["publisher_title"].tolist()]
     title = [x.replace('\\', '') for x in df["title"].tolist()]
 
-    Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences, docs_dict, title_dict, text_dict, ner_dict, pos_dict, unique_ner_dict, unique_pos_dict = helper.get_sentences_from_news(
+    Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, Date_Sentences, Time_Sentences, Category_Sentences, docs_dict, title_dict, text_dict, ner_dict, pos_dict, unique_ner_dict, unique_pos_dict = helper.get_sentences_from_news(
         df, news_content, news_publisher_title, title, news_content_WO_preprocssing)
     cluster_embeddings_dict_full = embeddings.get_cluster_embeddings_full(model_name, Place_Sentences, Person_Sentences,
                                                                           Content_Sentences, Day_Sentences,
@@ -40,7 +40,7 @@ def storeHierarchyData():
     top2vec_model = Top2Vec(documents=news_content, speed="learn", workers=8)
 
     storingAndLoading.storeData(Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences,
-                                Year_Sentences, Date_Sentences,
+                                Year_Sentences, Date_Sentences, Time_Sentences, Category_Sentences,
                                 cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict,
                                 len(news_content), top2vec_model)
 
@@ -105,15 +105,16 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
     entity_naming_dict = {}
     content_depth_now = 1
     Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, \
-    Date_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model = storingAndLoading.loadData()
+    Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model = storingAndLoading.loadData()
     parent_cluster_main_phase_1 = Node([x for x in range(news_content_length)])
     clusters_to_furthur_split = helper.fetchDocumentstoSplit(text_dict, Date_Sentences, topic_interest_keyword,
                                                              from_date_keyword, to_date_keyword,
                                                              news_content_length)
     if not clusters_to_furthur_split:
         raise Exception("Unable to find documents for the given filters")
-    weights, possible_content_depth, weights_parameters_list = helper.create_content_weights(len(clusters_to_furthur_split), weights,
-                                                                    content_capture_needed)
+    weights, possible_content_depth, weights_parameters_list = helper.create_content_weights(
+        len(clusters_to_furthur_split), weights,
+        content_capture_needed)
 
     content_weight_temp = 0.4
     pos_weight_temp = 0.6
@@ -153,7 +154,8 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
             weights["content"][str(idx + 1)][1]["cluster_selection_epsilon"] = cluster_selection_epsilon_temp
 
     nodes_edges_main, child_count = helper.create_nodes_edges_from_hierarchy(parent_cluster_main_phase_1, 0, 1, 0,
-                                                                             entity_name_list, entity_naming_dict, split_with_size)
+                                                                             entity_name_list, entity_naming_dict,
+                                                                             split_with_size)
     for entity_name in split_entity_list[1:]:
         nodes_edges_main, child_count, clusters_to_furthur_split, Nodes_dict, content_depth_now, splitted = splitting.perform_furthur_split_by_entity(
             cluster_embeddings_dict_full, weights, entity_name, clusters_to_furthur_split, nodes_edges_main,
@@ -175,8 +177,12 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
             for idx in range(possible_content_depth):
                 weights["content"][str(idx + 1)][1]["cluster_selection_epsilon"] = cluster_selection_epsilon_temp
 
+
     storingAndLoading.storeUseFlat({"useFlat": True})
-    nodes_edges_main['docs_dict'], nodes_edges_main['text_dict'] = docs_dict, text_dict
+    time_dict = {v: k for v, k in enumerate(Time_Sentences)}
+    category_dict = {v: k for v, k in enumerate(Category_Sentences)}
+    nodes_edges_main['docs_dict'], nodes_edges_main['text_dict'], nodes_edges_main['time_dict'], nodes_edges_main['category_dict'], nodes_edges_main['pos_dict']= docs_dict, text_dict, time_dict, category_dict, pos_dict
+
 
     # possible_content_depth_nodes_edges = 0
     # for node in nodes_edges_main['nodes']:
@@ -193,6 +199,7 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
                                                      Date_Sentences, ratio_limit)
     nodes_edges_main, cluster_name_dict = filtering.filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict,
                                                                        ratio_limit)
+    nodes_edges_main = helper.create_cluster_match(nodes_edges_main, cluster_embeddings_dict_full)
 
     nodes_edges_main = helper.find_related_events(nodes_edges_main, cluster_embeddings_dict_full)
 
@@ -207,7 +214,7 @@ def alter_WEHONA(content_depth_needed):
     static_search = storingAndLoading.static_load_cluster_name_dict_news()
     nodes = static_news["nodes"]
     weights_list = static_news["weights_list"]
-    content_depth_by_weight = static_news["weights_list"][content_depth_needed-1]
+    content_depth_by_weight = static_news["weights_list"][content_depth_needed - 1]
     nodes_updated = []
     search_updated = {}
     for node in nodes:

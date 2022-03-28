@@ -143,6 +143,7 @@ def filter_nodes_edges(nodes_edges_main, ner_dict, pos_dict, ratio_limit):
                 nodes_dict_updated[index]["colorDict_id"] = colorDict_id_from_node
 
     nodes_dict_updated[0]["colorDict_id"] = 0
+    nodes_dict_updated[0]["color"] = {"background": "white", "border": "black"}
     nodes_edges_main['nodes'] = nodes_dict_updated
     return nodes_edges_main, cluster_name_dict
 

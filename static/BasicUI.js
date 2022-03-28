@@ -1,9 +1,18 @@
+var n;
+var e;
+var n_unchanged;
 var nodes;
 var edges;
+var container;
+var data;
 var network;
 var cluster_dict;
 var docs_dict;
 var text_dict;
+var time_dict;
+var cluster_match_dict;
+var category_dict;
+var pos_dict;
 var related_events;
 var title_dict;
 var summary_dict;
@@ -14,10 +23,11 @@ var possible_content_depth;
 var news_path;
 var summary;
 var n_list = [];
+var options;
 
 var current_image_no = 0;
 
-var images_list = ["/images/news_1.jpg", "/images/news_2.jpg", "/images/news_3.jpg", "/images/news_4.jpg", "/images/news_5.jpg"]
+var images_list = ["/images/image_1.png", "/images/image_2.png", "/images/news_3.jpg", "/images/news_4.jpg", "/images/news_5.jpg"]
 
 var modal_news = document.getElementById('modalNews');
 var modal_news_content = document.getElementById('modalNewsContent');
@@ -39,8 +49,9 @@ output2.innerHTML = slider2.value;
 var not_from_slider = true
 
 
+
 function addClusterNo(params){
-document.getElementById('event_representation_header').textContent = ": Cluster No - " + params.nodes[0];
+document.getElementById('event_representation_header').textContent = "Cluster No - " + params.nodes[0];
 }
 
 function addWhat(params){
@@ -93,7 +104,7 @@ first_where_place_content.appendChild(where_place_content);
 function addRelatedEvents(params){
 var related_events_div = document.getElementById("related_events_div");
 related_events_div.innerHTML = '';
-related_events_in_cluster = related_events["cluster_" + params.nodes[0].toString()]
+    let related_events_in_cluster = related_events["cluster_" + params.nodes[0].toString()]
     if(related_events_in_cluster.length == 0){
         related_events_div.innerText = "No Related Events";
     }
@@ -101,7 +112,8 @@ related_events_in_cluster = related_events["cluster_" + params.nodes[0].toString
         for (k = 0; k < related_events_in_cluster.length; k++){
             var newDiv = document.createElement('div');
             newDiv.className = "related_events"
-            newDiv.cluster_name = related_events_in_cluster[k]
+            newDiv.cluster_name = related_events_in_cluster[k][0]
+            newDiv.style.backgroundColor = related_events_in_cluster[k][1]
             newDiv.innerHTML = "Related Event " + (k+1).toString();
             newDiv.addEventListener('click', showRelatedEvent, false);
             related_events_div.appendChild(newDiv);
@@ -172,6 +184,92 @@ function addSummary(params){
 //document.getElementById('summary_content').textContent = summary_in_cluster;
 }
 
+function addCategory(newDiv, category) {
+    var categoryDiv = document.createElement('div');
+    categoryDiv.className = "category";
+    categoryDiv.innerHTML = category;
+    newDiv.appendChild(categoryDiv);
+    return newDiv;
+}
+
+function addDateTime(newDiv, time) {
+    var dateTimeDiv = document.createElement('div');
+    dateTimeDiv.className = "dateTime";
+
+        var clockDiv = document.createElement('i');
+        clockDiv.className = "bi bi-alarm-fill clock";
+        dateTimeDiv.appendChild(clockDiv);
+
+
+    dateTimeDiv.innerHTML = dateTimeDiv.innerHTML + " " + time;
+    newDiv.appendChild(dateTimeDiv);
+    return newDiv;
+}
+
+function addClusterMatch(newDiv, sim_to_center) {
+    var clusterMatchDiv = document.createElement('div');
+    clusterMatchDiv.className = "clusterMatch";
+    var circleDivs = document.createElement('i');
+    let m_value;
+    let n_value;
+    if(sim_to_center>0.8){
+        m_value = 5
+    }
+    else if(sim_to_center<=0.8 && sim_to_center>0.6){
+        m_value = 4
+    }
+    else if(sim_to_center<=0.6 && sim_to_center>0.4){
+        m_value = 3
+    }
+    else if(sim_to_center<=0.4 && sim_to_center>0.2){
+        m_value = 2
+    }
+    else {
+        m_value = 1
+    }
+    n_value = 5-m_value;
+    // alert(sim_to_center);
+    // alert(m_value);
+
+        for (let m = 0; m<m_value; m++){
+            var class_name = "bi bi-circle-fill circle_fill"
+            var crcdv = document.createElement('i');
+            crcdv.className = class_name;
+            circleDivs.appendChild(crcdv);
+        }
+        for (let n = 0; n<n_value; n++){
+            var class_name = "bi bi-circle-fill circle"
+            var crcdv = document.createElement('i');
+            crcdv.className = class_name;
+            circleDivs.appendChild(crcdv);
+        }
+
+    clusterMatchDiv.appendChild(circleDivs)
+    newDiv.appendChild(clusterMatchDiv);
+    return newDiv;
+}
+
+function addKeywords(newDiv, keywords) {
+    var keywordsDiv = document.createElement('div');
+    keywordsDiv.className = "keywords";
+
+        var tagDiv = document.createElement('i');
+        tagDiv.className = "bi bi-bookmark-fill tag";
+        keywordsDiv.appendChild(tagDiv);
+
+    for (let i= 0; i< 8; i++){
+        var keywords_string = keywords[i]
+        var keyDiv = document.createElement('div');
+        keyDiv.className = "key";
+        keyDiv.innerHTML = keywords_string
+        keywordsDiv.appendChild(keyDiv);
+    }
+
+    // keywordsDiv.innerHTML = keywordsDiv.innerHTML + " " + keywords_string.substring(0, keywords_string.length - 2);
+    newDiv.appendChild(keywordsDiv)
+    return newDiv;
+}
+
 function addNews(params){
 docs_in_cluster = cluster_dict["cluster_" + params.nodes[0].toString()]
 document.getElementById('newsArticlesText').innerHTML = '';
@@ -179,16 +277,56 @@ document.getElementById('newsArticlesText').innerHTML = '';
             doc_no = docs_in_cluster[k]
             var newDiv = document.createElement('div');
             newDiv.fulltext = text_dict[doc_no];
-            newDiv.title = docs_dict[doc_no];
+            newDiv.heading = docs_dict[doc_no];
             newDiv.id = 'doc_'+ doc_no;
             newDiv.className = 'cluster';
-            newDiv.innerHTML = docs_dict[doc_no] + '<br/>'
+            newDiv.innerHTML = "<strong>"+docs_dict[doc_no]+"</strong>";
+
+            var catDatCluDiv = document.createElement('div');
+            catDatCluDiv.className = 'catDatCluDiv';
+            catDatCluDiv = addCategory(catDatCluDiv, category_dict[doc_no]);
+            catDatCluDiv = addDateTime(catDatCluDiv, time_dict[doc_no]);
+            catDatCluDiv = addClusterMatch(catDatCluDiv, cluster_match_dict["cluster_" + params.nodes[0].toString()][doc_no]);
+            newDiv.appendChild(catDatCluDiv)
+
+            newDiv = addKeywords(newDiv, pos_dict[doc_no]);
             newDiv.addEventListener('click', openFullNews, false);
             document.getElementById('newsArticlesText').appendChild(newDiv);
         }
 }
 
 
+function changeColors(params) {
+    let nodeID = params.nodes[0];
+    let related_nodeId;
+    if (nodeID) {
+        n = n_unchanged;
+        nodes.update(n);
+        let related_nodes_for_cluster = [];
+        let related_events_in_cluster = related_events["cluster_" + params.nodes[0].toString()]
+        let connected_nodes = network.getConnectedNodes(nodeID);
+        for (let m = 0; m < related_events_in_cluster.length; m++) {
+            related_nodeId = related_events_in_cluster[m][0].substring(8,);
+            related_nodes_for_cluster.push(parseInt(related_nodeId));
+        }
+        let final_nodes = connected_nodes.concat(related_nodes_for_cluster)
+        final_nodes.push(nodeID);
+        for (let k = 0; k < n_list.length; k++) {
+            if (! final_nodes.includes(n_list[k])) {
+                const unClickedNode = nodes.get(n_list[k]);
+                unClickedNode.color = {
+                    border: '#808080',
+                    background: '#D3D3D3'
+                    // highlight: {
+                    //     border: '#808080',
+                    //     background: '#808080',
+                    // }
+                }
+                nodes.update(unClickedNode);
+            }
+        }
+    }
+}
 
 // Function for click event
 function click(){
@@ -203,8 +341,17 @@ function click(){
         addNews(params);
         addSummary(params);
         addRelatedEvents(params);
-    }});
+        changeColors(params);
+    }
+    else{
+        nodes.update(n_unchanged);
+        reset_event_representation_news_content();
+    }
+
+
+  });
 }
+
 
 // Function for displaying tree
 function displayTree() {
@@ -219,16 +366,21 @@ else if (document.getElementById("cluster_method_list").value == "Voyager"){
     fetch(news_path).then(response => {
   return response.json();
 }).then(data => {
-  var n = data["nodes"]
+  n = data["nodes"]
+  n_unchanged = n;
+  // n_unchanged = JSON.parse(JSON.stringify(n));
   for(j=0; j<n.length; j++){
     node_id = n[j]["id"]
     n_list.push(node_id)
   }
-
-  var e = data["edges"]
+  e = data["edges"]
   cluster_dict = data["cluster_dict"]
   docs_dict = data["docs_dict"]
   text_dict = data["text_dict"]
+  time_dict = data["time_dict"]
+  category_dict = data["category_dict"]
+  cluster_match_dict = data["cluster_centroids_dict"]
+  pos_dict = data["pos_dict"]
   related_events = data["related_events"]
   title_dict = data["Title_dict"]
   summary_dict = data["Summary_dict"]
@@ -245,27 +397,31 @@ else if (document.getElementById("cluster_method_list").value == "Voyager"){
   // create an array with edges
   edges = new vis.DataSet(e);
   // create a network
-  var container = document.getElementById("hierarchicalStructure");
-  var data = {
+  container = document.getElementById("hierarchicalStructure");
+  data = {
     nodes: nodes,
     edges: edges
   };
-  var options = {
+  options = {
 
-  nodes: { borderWidth: 1, color: {
-            background: '#7CB9E8',
-            border:  '#000000'
-//            highlight: {
-//                border: '#2B7CE9',
-//                background: 'DarkSeaGreen'
-//            }
-            }},
+  nodes: { borderWidth: 1
+//             color: {
+//             background: '#7CB9E8',
+//             border:  '#000000'
+// //            highlight: {
+// //                border: '#2B7CE9',
+// //                background: 'DarkSeaGreen'
+// //            }
+//             }
+            },
   interaction: {
       hover: true,
 //      tooltipDelay: 200,
 //      hideEdgesOnDrag: true,
 //      hideEdgesOnZoom: true,
-      zoomView: $('#zoom_view_checkbox').is(':checked')
+      zoomView: $('#zoom_view_checkbox').is(':checked'),
+      navigationButtons: $('#zoom_view_checkbox').is(':checked'),
+      keyboard: $('#zoom_view_checkbox').is(':checked')
     },
 
   layout: {
@@ -294,7 +450,7 @@ var openFullNews = function() {
      document.body.style.backgroundColor = "DimGrey";
      modal_news.style.display = "block";
      modal_news_content.innerHTML = this.fulltext;
-     modal_news_header.innerHTML = this.title;
+     modal_news_header.innerHTML = this.heading;
 };
 
 
@@ -534,7 +690,7 @@ function set(elm, val) {
 
 function reset_event_representation_news_content(){
 document.getElementById("event_representation_header").innerHTML = "";
-document.getElementById("hierarchicalStructure").innerHTML = "";
+// document.getElementById("hierarchicalStructure").innerHTML = "";
 document.getElementById("what_content").innerHTML = "Title";
 document.getElementById("first_who_content").innerHTML = "Person";
 document.getElementById("first_when_content").innerHTML = "Time";
@@ -677,17 +833,33 @@ function prevImage(){
     if(current_image_no < 0){
         current_image_no = 0
     }
+    document.getElementById('img_no').innerHTML = current_image_no + 1;
     let img_path = images_list[current_image_no];
     document.getElementById("modal_images").src = img_path;
 }
 
 function nextImage(){
     current_image_no = current_image_no + 1;
-    if(current_image_no > images_list.length-1){
-        current_image_no = images_list.length-1
+    if(current_image_no > images_list.length-1) {
+        current_image_no = images_list.length - 1
     }
+    document.getElementById('img_no').innerHTML = current_image_no + 1;
     let img_path = images_list[current_image_no];
     document.getElementById("modal_images").src = img_path;
 }
 
 
+function openUserStudy(){
+window.open("https://docs.google.com/forms/d/e/1FAIpQLScDDebeoFNjlfJzolo7PtmLY-HDeEjAOUGRvgCPQ5DqLpw6Hg/viewform");
+}
+
+function alter_search_bar(){
+    if($('#search_availability_checkbox').is(':checked')){
+        document.getElementById('search_node').disabled = false;
+        document.getElementById('search_node').style.backgroundColor = "White";
+    }
+    else{
+        document.getElementById('search_node').disabled= true;
+        document.getElementById('search_node').style.backgroundColor = "LightGray";
+    }
+}
