@@ -65,6 +65,59 @@
         <span class="close_settings">&times;</span>
     </div>
 
+
+
+    <div id="modalRelatedNews" class="modal">
+        <h3 style="text-align: center; padding-right: 10px;" id = 'relatedNewsHeader'>Related Event</h3>
+
+        <div id = "related_news_event_representation">
+
+
+
+                <div class = "block" style="margin-bottom: 30px;">
+                    <strong>Cluster No :</strong>
+                    <div class="related" id = "related_cluster_no">No</div>
+                </div>
+
+                <div class = "block" style="margin-bottom: 30px;">
+                    <strong>Who <i class="bi bi-person"></i> &nbsp&nbsp:</strong>
+                    <div class="related" id = "related_first_who_content">Person</div>
+                </div>
+
+                <div class = "block" style="margin-bottom: 30px;">
+                    <strong>When <i class="bi bi-calendar"></i> &nbsp&nbsp:</strong>
+                    <div class="related" id = "related_first_when_content">Time</div>
+                </div>
+
+                <div class = "block" style="margin-bottom: 10px;">
+                    <strong>Where <i class="bi bi-shop"></i> &nbsp&nbsp:</strong>
+                    <div class="related" id = "related_first_where_place_content">Place</div>
+                </div>
+
+
+        </div>
+
+        <div id="related_news_articles">
+            <div style = "font-size: 20px;">
+                <strong>News Articles</strong>
+            </div>
+            <div id="relatedNewsArticlesText"></div>
+        </div>
+
+
+        <footer class="footer">
+            <button type="button" class = "button_modal" onclick= "go_to_related_event()"><strong>Go To</strong></button>
+        </footer>
+
+        <span class="close_related_News">&times;</span>
+
+    </div>
+
+
+
+
+
+
     <div id="modalInfo" class="modal">
         <h3 style="text-align: center; padding-right: 10px;">Quick Tour</h3>
         <img id = "modal_images" src="/images/image_1.png">

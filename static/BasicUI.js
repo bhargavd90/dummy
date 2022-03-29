@@ -33,11 +33,14 @@ var modal_news = document.getElementById('modalNews');
 var modal_news_content = document.getElementById('modalNewsContent');
 var modal_news_header = document.getElementById('modalNewsHeader');
 var modal_settings = document.getElementById('modalSettings');
+var modal_related_news = document.getElementById('modalRelatedNews');
 var modal_settings_content = document.getElementById('modalSettingsContent');
 var modal_settings_header = document.getElementById('modalSettingsHeader');
+var related_news_header = document.getElementById('relatedNewsHeader');
 var modal_info = document.getElementById('modalInfo');
 var close_news = document.getElementsByClassName("close_news")[0];
 var close_settings = document.getElementsByClassName("close_settings")[0];
+var close_related_news = document.getElementsByClassName("close_related_News")[0];
 var close_info = document.getElementsByClassName("close_info")[0];
 
 var slider1 = document.getElementById("myRange1");
@@ -50,13 +53,13 @@ var not_from_slider = true
 
 
 
-function addClusterNo(params){
-document.getElementById('event_representation_header').textContent = "Cluster No - " + params.nodes[0];
-}
-
 function addWhat(params){
 title_in_cluster = title_dict["Title_"+"cluster_" + params.nodes[0].toString()]
 document.getElementById('what_content').textContent = title_in_cluster;
+}
+
+function addClusterNo(params){
+document.getElementById('event_representation_header').textContent = "Cluster No - " + params.nodes[0];
 }
 
 function addWho(params){
@@ -121,16 +124,22 @@ related_events_div.innerHTML = '';
     }
 }
 
-var showRelatedEvent = function() {
-    var options_2 = {
-    scale: 0.2,
+function go_to_related_event(){
+    modal_related_news.style.display = "none";
+    document.getElementById('hierarchicalStructure').style.filter = "blur(0)";
+    document.getElementById('displayInfo').style.filter = "blur(0)";
+    document.getElementById('mainHeader').style.filter = "blur(0)";
+    document.body.style.backgroundColor = "white";
+    set_entity_names();
+  var options_2 = {
+    scale: 0.4,
     offset: { x: 0, y: 0},
     animation: {
       duration: 100,
       easingFunction: "linear",
     },
   };
-  var cluster_id = parseInt(this.cluster_name.replace("cluster_", ""));
+  var cluster_id = parseInt(related_news_header.cluster_id);
   if (n_list.includes(cluster_id)){
       network.focus(cluster_id, options_2);
       network.selectNodes([cluster_id], true);
@@ -138,6 +147,24 @@ var showRelatedEvent = function() {
   else{
     swal("Increase the coarseness to view this Related Event!", "", "info");
   }
+
+}
+
+
+var showRelatedEvent = function() {
+    let cluster_id = this.cluster_name.replace("cluster_", "");
+    addClusterNoRelated(cluster_id);
+    addWhoRelated(cluster_id);
+    addWhenRelated(cluster_id);
+    addPlaceRelated(cluster_id);
+    addNewsRelated(cluster_id);
+    related_news_header.cluster_id = cluster_id;
+    related_news_header.innerHTML = this.innerHTML;
+    document.getElementById('hierarchicalStructure').style.filter = "blur(2px)";
+    document.getElementById('displayInfo').style.filter = "blur(2px)";
+    document.getElementById('mainHeader').style.filter = "blur(2px)";
+    document.body.style.backgroundColor = "DimGrey";
+    modal_related_news.style.display = "block";
 }
 
 
@@ -492,6 +519,17 @@ close_settings.onclick = function() {
     set_entity_names();
 }
 
+close_related_news.onclick = function() {
+    modal_related_news.style.display = "none";
+    document.getElementById('hierarchicalStructure').style.filter = "blur(0)";
+    document.getElementById('displayInfo').style.filter = "blur(0)";
+    document.getElementById('mainHeader').style.filter = "blur(0)";
+    document.body.style.backgroundColor = "white";
+    set_entity_names();
+}
+
+
+
 close_info.onclick = function() {
     modal_info.style.display = "none";
     document.getElementById('hierarchicalStructure').style.filter = "blur(0)";
@@ -689,7 +727,7 @@ function set(elm, val) {
 
 
 function reset_event_representation_news_content(){
-document.getElementById("event_representation_header").innerHTML = "";
+document.getElementById("event_representation_header").innerHTML = "Cluster No";
 // document.getElementById("hierarchicalStructure").innerHTML = "";
 document.getElementById("what_content").innerHTML = "Title";
 document.getElementById("first_who_content").innerHTML = "Person";
@@ -863,3 +901,39 @@ function alter_search_bar(){
         document.getElementById('search_node').style.backgroundColor = "LightGray";
     }
 }
+
+
+function addClusterNoRelated(cluster_id){
+document.getElementById('related_cluster_no').textContent = cluster_id;
+}
+
+function addWhoRelated(cluster_id){
+persons_in_cluster = person_dict["Person_"+"cluster_" + cluster_id.toString()]
+document.getElementById("related_first_who_content").textContent = persons_in_cluster[0];
+}
+
+function addWhenRelated(cluster_id){
+date_in_cluster = date_dict["Date_"+"cluster_" + cluster_id.toString()]
+document.getElementById("related_first_when_content").textContent = date_in_cluster[0];
+}
+
+function addPlaceRelated(cluster_id){
+place_in_cluster = place_dict["Place_"+"cluster_" + cluster_id.toString()]
+document.getElementById("related_first_where_place_content").textContent = place_in_cluster[0];
+}
+
+function addNewsRelated(cluster_id){
+let docs_in_cluster = cluster_dict["cluster_" + cluster_id.toString()]
+document.getElementById('relatedNewsArticlesText').innerHTML = '';
+ for (k = 0; k < docs_in_cluster.length; k++){
+            doc_no = docs_in_cluster[k]
+            var newDiv = document.createElement('div');
+            newDiv.fulltext = text_dict[doc_no];
+            newDiv.heading = docs_dict[doc_no];
+            newDiv.id = 'doc_'+ doc_no;
+            newDiv.className = 'related_cluster';
+            newDiv.innerHTML = docs_dict[doc_no];
+            document.getElementById('relatedNewsArticlesText').appendChild(newDiv);
+        }
+}
+

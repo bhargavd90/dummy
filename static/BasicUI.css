@@ -112,6 +112,25 @@ body{
     /*background-color: #78909c;*/
 }
 
+
+#related_news_event_representation{
+    padding-left: 5px;
+    padding-top: 5px;
+    margin: 20px 10px 10px 10px;
+}
+
+#related_news_articles{
+    height: 200px;
+    border: 1.5px solid black;
+    overflow: scroll;
+    overflow-x: hidden;
+    padding-left: 5px;
+    padding-top: 5px;
+    border-radius : 10px;
+    margin: 0px 10px 10px 10px;
+}
+
+
 #newsArticlesText{
     margin-top: 15px;
 }
@@ -143,6 +162,29 @@ body{
     padding-left: 10px; /* Location of the box */
     font-size: 16px;
 }
+
+#modalRelatedNews{
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    top:0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 60%; /* Full width */
+    height: 50%; /* Full height */
+    background-color: white; /* Black w/ opacity */
+    border: 2px solid #888;
+    margin: auto;
+    -webkit-animation: fadeIn 1.5s;
+    animation: fadeIn 1.5s;
+    border-radius : 10px;
+}
+
+
+
+
+
 
 #modalSettings{
     display: none; /* Hidden by default */
@@ -209,7 +251,7 @@ body{
     margin: 20px;
 }
 
-.close_settings, .close_news, .close_info {
+.close_settings, .close_news, .close_info, .close_related_News {
     color: #aaaaaa;
     width : 2.5%;
     float : right;
@@ -223,8 +265,8 @@ body{
 
 
 }
-.close_settings:hover, .close_news:hover, .close_info:hover
-.close_settings:focus, .close_news:focus, .close_info:hover {
+.close_settings:hover, .close_news:hover, .close_info:hover, .close_related_News:hover,
+.close_settings:focus, .close_news:focus, .close_info:hover, .close_related_News:focus {
     color: #000;
     text-decoration: none;
     cursor: pointer;
@@ -244,6 +286,15 @@ body{
     background-color: #7CB9E8;
     /*text-decoration: underline;*/
     cursor: pointer;
+}
+
+
+.related_cluster{
+    background-color: silver;
+    border-radius: 5px;
+    padding: 5px;
+    margin-top: 10px;
+    margin-right: 5px;
 }
 
 br {
@@ -270,7 +321,7 @@ margin:0.25em;
   display: none;
   position: absolute;
   background-color: gainsboro;
-  width: 140px;
+  width: 120px;
   height: 80px;
   box-shadow: 0px 0px 0px 0px rgba(0,0,0,0.2);
   overflow : auto;
@@ -278,7 +329,7 @@ margin:0.25em;
   border-radius : 10px;
   margin-top: 3px;
   z-index : 1;
-
+  overflow-x: hidden;
 }
 
 .dropdown:hover
@@ -728,15 +779,18 @@ ul {
     font-size:30px;
 }
 
-#event_representation_header{
-    position: relative;
+#event_representation_header, #related_event_representation_header{
+  position: relative;
   display: inline-block;
   margin-left: 10px;
   border: 1.5px solid black;
   border-radius : 10px;
   padding: 3px 8px 3px 8px;
   background-color:silver;
+    font-size: 16px;
 }
+
+
 
 
 .related_events{
@@ -909,4 +963,18 @@ font-weight: bold;
     background-color: azure;
     text-align: center;
     font-style: italic;
+}
+
+
+.related{
+    display: inline-block;
+}
+
+.block{
+    margin-right: 20px;
+    border: 1.5px solid black;
+    border-radius: 10px;
+    padding: 3px 8px 3px 8px;
+    background-color:silver;
+    display: inline-block;
 }
