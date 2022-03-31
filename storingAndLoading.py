@@ -5,7 +5,7 @@ from numpyencoder import NumpyEncoder
 
 def storeData(Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences,
               Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict,
-              news_content_length, top2vec_model):
+              news_content_length, top2vec_model, category_split):
     print("storing data ...")
     with open('resources/place_sentences', 'wb') as fp:
         pickle.dump(Place_Sentences, fp)
@@ -41,6 +41,8 @@ def storeData(Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentence
         pickle.dump(news_content_length, fp)
     with open('resources/top2vec_model', 'wb') as fp:
         pickle.dump(top2vec_model, fp)
+    with open('resources/category_split', 'wb') as fp:
+        pickle.dump(category_split, fp)
 
 
 def loadData():
@@ -81,8 +83,10 @@ def loadData():
         news_content_length = pickle.load(fp)
     with open('resources/top2vec_model', 'rb') as fp:
         top2vec_model = pickle.load(fp)
+    with open('resources/category_split', 'rb') as fp:
+        category_split = pickle.load(fp)
     return Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, \
-           Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model
+           Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model, category_split
 
 
 def loadColors():

@@ -112,7 +112,11 @@ related_events_div.innerHTML = '';
         related_events_div.innerText = "No Related Events";
     }
     else{
-        for (k = 0; k < related_events_in_cluster.length; k++){
+        let max_related_show = 4
+        if (related_events_in_cluster.length < max_related_show){
+            max_related_show = related_events_in_cluster.length
+        }
+        for (k = 0; k < max_related_show; k++){
             var newDiv = document.createElement('div');
             newDiv.className = "related_events"
             newDiv.cluster_name = related_events_in_cluster[k][0]

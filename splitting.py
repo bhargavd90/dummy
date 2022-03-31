@@ -58,7 +58,7 @@ def perform_split(cluster_data, complete_weights, hdbscan_dict, is_first):
 
 def split_for_3_levels(cluster_embeddings_dict_full, entity_name, weights, parent_cluster_main_phase_1,
                        clusters_to_furthur_split, cluster_info_for_not_clustered_data_dict, Nodes_dict,
-                       entity_naming_dict, is_first, content_depth_now, time_place_weight, content_weight):
+                       entity_naming_dict, is_first, content_depth_now, time_place_weight, content_weight, category_split):
     if entity_name == 'place':
         entity_name_list = ['place']
     elif entity_name == 'person':
@@ -180,14 +180,18 @@ def split_for_3_levels(cluster_embeddings_dict_full, entity_name, weights, paren
             embeddings.get_cluster_embeddings_dict_per_cluster(cluster_embeddings_dict_full, clusters_to_furthur_split,
                                                                content_pos_weight),
             clusters_to_furthur_split, clusters_to_furthur_split]
-        ids_based_on_labels, cluster_info_for_not_clustered_data = perform_split(cluster_data, complete_weights,
-                                                                                 hdbscan_dict, is_first)
 
-        if len(ids_based_on_labels) > 1:
-            print(hdbscan_dict["min_cluster_size"])
-            print(content_pos_weight)
-            print(hdbscan_dict["cluster_selection_epsilon"])
-            print(" ")
+        if is_first:
+            ids_based_on_labels, cluster_info_for_not_clustered_data = category_split, [0]
+        else:
+            ids_based_on_labels, cluster_info_for_not_clustered_data = perform_split(cluster_data, complete_weights,
+                                                                                     hdbscan_dict, is_first)
+
+        if len(ids_based_on_labels) > 1 and not is_first:
+            # print(hdbscan_dict["min_cluster_size"])
+            # print(content_pos_weight)
+            # print(hdbscan_dict["cluster_selection_epsilon"])
+            # print(" ")
             splitted = True
         else:
             splitted = False
@@ -222,7 +226,7 @@ def perform_furthur_split_by_entity(cluster_embeddings_dict_full, weights, entit
         parent_cluster_main_phase_1, cluster_info_for_not_clustered_data_dict, clusters_to_furthur_split, Nodes_dict, ids_based_on_labels, entity_name_list, entity_naming_dict, content_depth_now, splitted = split_for_3_levels(
             cluster_embeddings_dict_full, entity_name, weights, parent_cluster_node, clus_to_spl,
             cluster_info_for_not_clustered_data_dict, Nodes_dict, entity_naming_dict, False, content_depth_now,
-            time_place_weight, content_weight)
+            time_place_weight, content_weight, [])
         nodes_edges_sub, child_count_sub = helper.create_nodes_edges_from_hierarchy(parent_cluster_main_phase_1,
                                                                                     parent_count,
                                                                                     child_count,

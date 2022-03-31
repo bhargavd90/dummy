@@ -22,6 +22,8 @@ def storeHierarchyData():
     news_content_WO_preprocssing = [x.replace('\\', '') for x in df["main_content"].tolist()]
     df = preprocessData.get_preprocessed_data(df)
 
+    category_split = helper.split_by_category(df)
+
     news_content = [x.replace('\\', '') for x in df["main_content"].tolist()]
     news_publisher_title = [x.replace('\\', '') for x in df["publisher_title"].tolist()]
     title = [x.replace('\\', '') for x in df["title"].tolist()]
@@ -42,7 +44,7 @@ def storeHierarchyData():
     storingAndLoading.storeData(Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences,
                                 Year_Sentences, Date_Sentences, Time_Sentences, Category_Sentences,
                                 cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict,
-                                len(news_content), top2vec_model)
+                                len(news_content), top2vec_model, category_split)
 
     top2vec_baseline.run_Top2Vec()
     ui_parameters = storingAndLoading.load_ui_parameters()
@@ -105,7 +107,7 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
     entity_naming_dict = {}
     content_depth_now = 1
     Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, \
-    Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model = storingAndLoading.loadData()
+    Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model, category_split = storingAndLoading.loadData()
     parent_cluster_main_phase_1 = Node([x for x in range(news_content_length)])
     clusters_to_furthur_split = helper.fetchDocumentstoSplit(text_dict, Date_Sentences, topic_interest_keyword,
                                                              from_date_keyword, to_date_keyword,
@@ -137,7 +139,7 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
     parent_cluster_main_phase_1, cluster_info_for_not_clustered_data_dict, clusters_to_furthur_split, Nodes_dict, ids_based_on_labels, entity_name_list, entity_naming_dict, content_depth_now, splitted = splitting.split_for_3_levels(
         cluster_embeddings_dict_full, split_entity_list[0], weights, parent_cluster_main_phase_1,
         clusters_to_furthur_split, cluster_info_for_not_clustered_data_dict, Nodes_dict, entity_naming_dict, True,
-        content_depth_now, time_place_weight, content_weight)
+        content_depth_now, time_place_weight, content_weight, category_split)
 
     if splitted:
         content_weight_temp = content_weight_temp + 0.1
@@ -201,7 +203,9 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
                                                                        ratio_limit)
     nodes_edges_main = helper.create_cluster_match(nodes_edges_main, cluster_embeddings_dict_full)
 
-    nodes_edges_main = helper.find_related_events(nodes_edges_main, cluster_embeddings_dict_full)
+    nodes_edges_main = helper.find_related_events(nodes_edges_main, cluster_embeddings_dict_full, False)
+
+    #nodes_edges_main = helper.post_process(nodes_edges_main)
 
     storingAndLoading.dynamic_store_cluster_name_dict_news(cluster_name_dict)
     storingAndLoading.static_store_cluster_name_dict_news(cluster_name_dict)

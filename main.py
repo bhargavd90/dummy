@@ -9,6 +9,11 @@ app = Flask(__name__)
 CORS(app)
 
 
+# 1-1 edges after finding related events
+# related events complete display ui
+# 3 related events unde rsame parent
+
+
 # cluster.storeHierarchyData()
 # cluster.generateHierarchy(["content"], 2, 0, 1)
 

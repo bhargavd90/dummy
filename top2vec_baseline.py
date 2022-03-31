@@ -39,7 +39,7 @@ def create_hierarchical_tree_from_cluster_docs(model):
 def run_Top2Vec():
     ratio_limit = 95
     Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, \
-    Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model = storingAndLoading.loadData()
+    Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model, category_split = storingAndLoading.loadData()
     parent_cluster_main = create_hierarchical_tree_from_cluster_docs(top2vec_model)
     top2vec_nodes_edges_main, child_count = helper.create_nodes_edges_from_hierarchy(parent_cluster_main, 0, 1, 0,
                                                                                      "",
@@ -81,7 +81,7 @@ def run_Top2Vec():
 
     top2vec_nodes_edges_main = helper.create_cluster_match(top2vec_nodes_edges_main, cluster_embeddings_dict_full)
 
-    top2vec_nodes_edges_main = helper.find_related_events(top2vec_nodes_edges_main, cluster_embeddings_dict_full)
+    top2vec_nodes_edges_main = helper.find_related_events(top2vec_nodes_edges_main, cluster_embeddings_dict_full, True)
 
     storingAndLoading.dynamic_store_cluster_name_dict_top2vec(cluster_name_dict)
     storingAndLoading.static_store_cluster_name_dict_top2vec(cluster_name_dict)

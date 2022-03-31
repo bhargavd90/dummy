@@ -14,6 +14,7 @@ import pytextrank
 import torch
 from collections import Counter
 from sklearn.metrics.pairwise import cosine_similarity
+import copy
 
 nlp = spacy.load('en_core_web_md')
 nlp.add_pipe("textrank")
@@ -290,7 +291,7 @@ def generate_custer_summary(news, cluster_no):
     return summary_sentence.rstrip("<strong>->  </strong>")
 
 
-def find_related_events(nodes_edges_main, cluster_embeddings_dict_full):
+def find_related_events(nodes_edges_main, cluster_embeddings_dict_full, from_top2_vec):
     print("Finding related events ...")
     nodes_list = nodes_edges_main["nodes"]
     nodes_branch_dict = {}
@@ -298,7 +299,19 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full):
     related_events_dict = {}
     cluster_centroids_dict = {}
     cluster_centroids_list = []
+    edges_dict_from = []
+    edges_dict_to = []
+    to_from_dict = {}
+    nodes_dict_id = {}
+    nodes_dict = nodes_edges_main["nodes"]
+    edges_dict = nodes_edges_main["edges"]
     cluster_dict = nodes_edges_main["cluster_dict"]
+    for edge in edges_dict:
+        edges_dict_from.append(edge['from'])
+        edges_dict_to.append(edge['to'])
+        to_from_dict[edge['to']] = edge['from']
+    for node in nodes_dict:
+        nodes_dict_id[node["id"]] = [node["colorDict_id"], node]
     for node in nodes_list:
         nodes_branch_dict["cluster_" + str(node["id"])] = node["colorDict_id"]
         nodes_color_dict["cluster_" + str(node["id"])] = node["color"]["background"]
@@ -319,24 +332,59 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full):
         sim_list = list(sim_array)
         sim_list_sorted = sorted(sim_list, reverse=True)
         for_cluster = cluster_names[index]
-        to_cluster_list = []
-        count = 0
-        for sim_value in sim_list_sorted:
-            index_of_highest_similarity = sim_list.index(sim_value)
-            to_cluster = cluster_names[index_of_highest_similarity]
-            if sim_value == 1 or nodes_branch_dict[for_cluster] == nodes_branch_dict[
-                to_cluster] or index_of_highest_similarity == 0:
-                continue
+        for_cluster_id = int(for_cluster.replace("cluster_", ""))
 
-            if count > 2 or sim_value < 0.6:
-                break
-            else:
-                to_cluster_list.append([to_cluster, nodes_color_dict[to_cluster]])
-                count = count + 1
+        if not from_top2_vec:
+            condition = for_cluster_id not in edges_dict_from #and nodes_dict_id[for_cluster_id][0] != 1
+        else:
+            condition = for_cluster_id not in edges_dict_from
 
-        related_events_dict[for_cluster] = to_cluster_list
+        if condition:
+            to_cluster_list = []
+            # count = 0
+            for sim_value in sim_list_sorted:
+                index_of_highest_similarity = sim_list.index(sim_value)
+                to_cluster = cluster_names[index_of_highest_similarity]
+                to_cluster_id = int(to_cluster.replace("cluster_", ""))
+                if to_cluster_id not in edges_dict_from:
+                    if sim_value == 1 or nodes_branch_dict[for_cluster] == nodes_branch_dict[
+                        to_cluster] or index_of_highest_similarity == 0:
+                        continue
+                    if sim_value < 0.4:
+                        break
+                    if sim_value > 0.7:
+                        docs_to_alter = cluster_dict["cluster_" + str(to_cluster_id)]
+                        cluster_id_from_temp = to_cluster_id
+                        cluster_id_to_temp = for_cluster_id
+                        cluster_dict["cluster_" + str(cluster_id_from_temp)] = list(
+                            set(cluster_dict["cluster_" + str(cluster_id_from_temp)]) - set(docs_to_alter))
+                        cluster_dict["cluster_" + str(cluster_id_to_temp)] = list(
+                            set(cluster_dict["cluster_" + str(cluster_id_to_temp)]).union(set(docs_to_alter)))
+                        while cluster_id_from_temp != 0:
+                            from_node_remove = to_from_dict[cluster_id_from_temp]
+                            if from_node_remove != 0:
+                                cluster_dict["cluster_" + str(from_node_remove)] = list(
+                                    set(cluster_dict["cluster_" + str(from_node_remove)]) - set(docs_to_alter))
+                            cluster_id_from_temp = from_node_remove
+                        while cluster_id_to_temp != 0:
+                            from_node_add = to_from_dict[cluster_id_to_temp]
+                            if from_node_add != 0:
+                                cluster_dict["cluster_" + str(from_node_add)] = list(
+                                    set(cluster_dict["cluster_" + str(from_node_add)]).union(set(docs_to_alter)))
+                            cluster_id_to_temp = from_node_add
+                    elif 0.4 < sim_value < 0.7:
+                        to_cluster_list.append([to_cluster, nodes_color_dict[to_cluster]])
+                    # count = count + 1
+            related_events_dict[for_cluster] = to_cluster_list
+        else:
+            related_events_dict[for_cluster] = []
+
     related_events_dict["cluster_0"] = []
-    nodes_edges_main["related_events"] = related_events_dict
+    nodes_dict_updated, related_dict_updated = remove_empty_clusters(cluster_dict, nodes_dict_id, nodes_dict,
+                                                                     related_events_dict, edges_dict_from)
+    nodes_edges_main["cluster_dict"] = cluster_dict
+    nodes_edges_main["nodes"] = nodes_dict_updated
+    nodes_edges_main["related_events"] = related_dict_updated
     return nodes_edges_main
 
 
@@ -354,3 +402,106 @@ def create_cluster_match(nodes_edges_main, cluster_embeddings_dict_full):
         cluster_centroids_dict[key] = sim_to_center
     nodes_edges_main["cluster_centroids_dict"] = cluster_centroids_dict
     return nodes_edges_main
+
+
+def remove_empty_clusters(cluster_dict, nodes_dict_id, nodes_dict, related_events_dict, edges_dict_from):
+    nodes_remove_list = []
+    related_dict_updated = {}
+    for key, value in cluster_dict.items():
+        if len(value) == 0:
+            cluster_id = int(key.replace("cluster_", ""))
+            node_to_remove = nodes_dict_id[cluster_id][1]
+            nodes_dict.remove(node_to_remove)
+            nodes_remove_list.append("cluster_" + str(node_to_remove["id"]))
+    for key, value in related_events_dict.items():
+        if int(key.replace("cluster_", "")) in edges_dict_from:
+            related_dict_updated[key] = []
+        else:
+            value_updated_2 = copy.deepcopy(value)
+            for related_clusters in value:
+                if related_clusters[0] in nodes_remove_list or int(
+                        related_clusters[0].replace("cluster_", "")) in edges_dict_from:
+                    value_updated_2.remove(related_clusters)
+            related_dict_updated[key] = value_updated_2
+    return nodes_dict, related_dict_updated
+
+
+def split_by_category(df):
+    ids_based_on_labels = []
+    category_list = ["Business", "Science & Technology", "Entertainment", "Health"]
+    for category in category_list:
+        ids_based_on_labels.append(df.index[df['category'] == category].tolist())
+    return ids_based_on_labels
+
+# def remove_empty_clusters(related_dict_updated, cluster_dict, nodes_dict_id, nodes_dict, edges_dict_from):
+#     nodes_remove_list = []
+#     related_dict_updated_2 = {}
+#     for key, value in cluster_dict.items():
+#         if len(value) == 0:
+#             cluster_id = int(key.replace("cluster_", ""))
+#             node_to_remove = nodes_dict_id[cluster_id][1]
+#             nodes_dict.remove(node_to_remove)
+#             nodes_remove_list.append("cluster_" + str(node_to_remove["id"]))
+#     for key, value in related_dict_updated.items():
+#         if int(key.replace("cluster_", "")) in edges_dict_from:
+#             related_dict_updated_2[key] = []
+#         else:
+#             value_updated_2 = copy.deepcopy(value)
+#             for related_clusters in value:
+#                 if related_clusters[0] in nodes_remove_list or int(
+#                         related_clusters[0].replace("cluster_", "")) in edges_dict_from:
+#                     value_updated_2.remove(related_clusters)
+#             related_dict_updated_2[key] = value_updated_2
+#     return nodes_dict, related_dict_updated_2
+#
+#
+# def post_process(nodes_edges_main):
+#     nodes_dict = nodes_edges_main['nodes']
+#     edges_dict = nodes_edges_main['edges']
+#     cluster_dict = nodes_edges_main['cluster_dict']
+#     related_dict_updated = {}
+#     nodes_dict_id = {}
+#     edges_dict_from = []
+#     edges_dict_to = []
+#     to_from_dict = {}
+#     for edge in edges_dict:
+#         edges_dict_from.append(edge['from'])
+#         edges_dict_to.append(edge['to'])
+#         to_from_dict[edge['to']] = edge['from']
+#     for index, node in enumerate(nodes_dict):
+#         nodes_dict_id[node["id"]] = [node["colorDict_id"], node]
+#
+#     for key, value in nodes_edges_main["related_events"].items():
+#         value_updated = copy.deepcopy(value)
+#         cluster_id = int(key.replace("cluster_", ""))
+#         if cluster_id not in edges_dict_from and nodes_dict_id[cluster_id][0] != 1:
+#             for related_events in value:
+#                 cluster_id_related = int(related_events[0].replace("cluster_", ""))
+#                 if nodes_dict_id[cluster_id_related][0] == 1 and cluster_id_related not in edges_dict_from:
+#                     value_updated.remove(related_events)
+#                     docs_to_alter = cluster_dict["cluster_" + str(cluster_id_related)]
+#                     cluster_id_from_temp = cluster_id_related
+#                     cluster_id_to_temp = cluster_id
+#                     cluster_dict["cluster_" + str(cluster_id_from_temp)] = list(
+#                         set(cluster_dict["cluster_" + str(cluster_id_from_temp)]) - set(docs_to_alter))
+#                     cluster_dict["cluster_" + str(cluster_id_to_temp)] = list(
+#                         set(cluster_dict["cluster_" + str(cluster_id_to_temp)]).union(set(docs_to_alter)))
+#                     while cluster_id_from_temp != 0:
+#                         from_node_remove = to_from_dict[cluster_id_from_temp]
+#                         if from_node_remove != 0:
+#                             cluster_dict["cluster_" + str(from_node_remove)] = list(
+#                                 set(cluster_dict["cluster_" + str(from_node_remove)]) - set(docs_to_alter))
+#                         cluster_id_from_temp = from_node_remove
+#                     while cluster_id_to_temp != 0:
+#                         from_node_add = to_from_dict[cluster_id_to_temp]
+#                         if from_node_add != 0:
+#                             cluster_dict["cluster_" + str(from_node_add)] = list(
+#                                 set(cluster_dict["cluster_" + str(from_node_add)]).union(set(docs_to_alter)))
+#                         cluster_id_to_temp = from_node_add
+#         related_dict_updated[key] = value_updated
+#     nodes_dict_updated, related_dict_updated_2 = remove_empty_clusters(related_dict_updated, cluster_dict,
+#                                                                        nodes_dict_id, nodes_dict, edges_dict_from)
+#     nodes_edges_main["related_events"] = related_dict_updated_2
+#     nodes_edges_main["cluster_dict"] = cluster_dict
+#     nodes_edges_main["nodes"] = nodes_dict_updated
+#     return nodes_edges_main
