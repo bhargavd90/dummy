@@ -18,6 +18,7 @@ def get_news_data():
         ids_list = ids_string.split(",")
         for id in ids_list:
             toy_dataset_ids.append(int(id.strip()))
+    print(len(toy_dataset_ids))
     df_original = df_original[df_original.index.isin(toy_dataset_ids)]
     df_original.reset_index(inplace=True)
 

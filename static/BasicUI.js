@@ -54,8 +54,25 @@ var not_from_slider = true
 
 
 function addWhat(params){
-title_in_cluster = title_dict["Title_"+"cluster_" + params.nodes[0].toString()]
-document.getElementById('what_content').textContent = title_in_cluster;
+  var python_url = 'http://127.0.0.1:8080/get_what_for_cluster';
+  var cluster_method_no = '?cluster_method_no=' + document.getElementById("cluster_method_list").value + ":" + "cluster_" + params.nodes[0].toString();
+  $.ajax({
+    url: python_url + cluster_method_no,
+    type: 'GET',
+    success: function(data){
+         document.getElementById('what_content').textContent = data;
+    }
+    });
+
+
+
+
+
+
+// title_in_cluster = title_dict["Title_"+"cluster_" + params.nodes[0].toString()]
+// document.getElementById('what_content').textContent = title_in_cluster;
+
+
 }
 
 function addClusterNo(params){
@@ -134,6 +151,10 @@ function go_to_related_event(){
     document.getElementById('displayInfo').style.filter = "blur(0)";
     document.getElementById('mainHeader').style.filter = "blur(0)";
     document.body.style.backgroundColor = "white";
+    document.getElementById('hierarchicalStructure').style.pointerEvents = "auto";
+     document.getElementById('eventRepresentation').style.pointerEvents = "auto";
+     document.getElementById('newsArticles').style.pointerEvents = "auto";
+     document.getElementById('mainHeader').style.pointerEvents = "auto";
     set_entity_names();
   var options_2 = {
     scale: 0.4,
@@ -169,6 +190,10 @@ var showRelatedEvent = function() {
     document.getElementById('mainHeader').style.filter = "blur(2px)";
     document.body.style.backgroundColor = "DimGrey";
     modal_related_news.style.display = "block";
+    document.getElementById('hierarchicalStructure').style.pointerEvents = "none";
+     document.getElementById('eventRepresentation').style.pointerEvents = "none";
+     document.getElementById('newsArticles').style.pointerEvents = "none";
+     document.getElementById('mainHeader').style.pointerEvents = "none";
 }
 
 
@@ -328,35 +353,57 @@ document.getElementById('newsArticlesText').innerHTML = '';
 
 
 function changeColors(params) {
-    let nodeID = params.nodes[0];
-    let related_nodeId;
-    if (nodeID) {
-        n = n_unchanged;
-        nodes.update(n);
-        let related_nodes_for_cluster = [];
-        let related_events_in_cluster = related_events["cluster_" + params.nodes[0].toString()]
-        let connected_nodes = network.getConnectedNodes(nodeID);
-        for (let m = 0; m < related_events_in_cluster.length; m++) {
-            related_nodeId = related_events_in_cluster[m][0].substring(8,);
-            related_nodes_for_cluster.push(parseInt(related_nodeId));
-        }
-        let final_nodes = connected_nodes.concat(related_nodes_for_cluster)
-        final_nodes.push(nodeID);
-        for (let k = 0; k < n_list.length; k++) {
-            if (! final_nodes.includes(n_list[k])) {
-                const unClickedNode = nodes.get(n_list[k]);
-                unClickedNode.color = {
-                    border: '#808080',
-                    background: '#D3D3D3'
-                    // highlight: {
-                    //     border: '#808080',
-                    //     background: '#808080',
-                    // }
+    if(params !== null) {
+        if (typeof params === "object") {
+            let nodeID = params.nodes[0];
+            let related_nodeId;
+            if (nodeID) {
+                n = n_unchanged;
+                nodes.update(n);
+                let related_nodes_for_cluster = [];
+                let related_events_in_cluster = related_events["cluster_" + params.nodes[0].toString()]
+                let connected_nodes = network.getConnectedNodes(nodeID);
+                for (let m = 0; m < related_events_in_cluster.length; m++) {
+                    related_nodeId = related_events_in_cluster[m][0].substring(8,);
+                    related_nodes_for_cluster.push(parseInt(related_nodeId));
                 }
-                nodes.update(unClickedNode);
+                let final_nodes = connected_nodes.concat(related_nodes_for_cluster)
+                final_nodes.push(nodeID);
+                for (let k = 0; k < n_list.length; k++) {
+                    if (!final_nodes.includes(n_list[k])) {
+                        const unClickedNode = nodes.get(n_list[k]);
+                        unClickedNode.color = {
+                            border: '#808080',
+                            background: '#D3D3D3'
+                            // highlight: {
+                            //     border: '#808080',
+                            //     background: '#808080',
+                            // }
+                        }
+                        nodes.update(unClickedNode);
+                    }
+                }
             }
+        } else {
+            let final_nodes = []
+            final_nodes.push(params);
+                for (let k = 0; k < n_list.length; k++) {
+                    if (!final_nodes.includes(n_list[k])) {
+                        const unClickedNode = nodes.get(n_list[k]);
+                        unClickedNode.color = {
+                            border: '#808080',
+                            background: '#D3D3D3'
+                            // highlight: {
+                            //     border: '#808080',
+                            //     background: '#808080',
+                            // }
+                        }
+                        nodes.update(unClickedNode);
+                    }
+                }
         }
     }
+
 }
 
 // Function for click event
@@ -364,6 +411,7 @@ function click(){
   network.on("click", function (params) {
     clicked_node = params.nodes[0]
     if (typeof clicked_node !== 'undefined'){
+        reset_event_representation_news_content();
         addClusterNo(params);
         addWhat(params);
         addWho(params);
@@ -482,6 +530,11 @@ var openFullNews = function() {
      modal_news.style.display = "block";
      modal_news_content.innerHTML = this.fulltext;
      modal_news_header.innerHTML = this.heading;
+     document.getElementById('hierarchicalStructure').style.pointerEvents = "none";
+     document.getElementById('eventRepresentation').style.pointerEvents = "none";
+     document.getElementById('newsArticles').style.pointerEvents = "none";
+     document.getElementById('mainHeader').style.pointerEvents = "none";
+
 };
 
 
@@ -493,6 +546,10 @@ function showSummary(){
      modal_news.style.display = "block";
      modal_news_content.innerHTML = summary;
      modal_news_header.innerHTML = "Summary";
+     document.getElementById('hierarchicalStructure').style.pointerEvents = "none";
+     document.getElementById('eventRepresentation').style.pointerEvents = "none";
+     document.getElementById('newsArticles').style.pointerEvents = "none";
+     document.getElementById('mainHeader').style.pointerEvents = "none";
 }
 
 
@@ -512,6 +569,10 @@ close_news.onclick = function() {
     document.getElementById('displayInfo').style.filter = "blur(0)";
     document.getElementById('mainHeader').style.filter = "blur(0)";
     document.body.style.backgroundColor = "white";
+    document.getElementById('hierarchicalStructure').style.pointerEvents = "auto";
+     document.getElementById('eventRepresentation').style.pointerEvents = "auto";
+     document.getElementById('newsArticles').style.pointerEvents = "auto";
+     document.getElementById('mainHeader').style.pointerEvents = "auto";
 }
 
 close_settings.onclick = function() {
@@ -520,6 +581,10 @@ close_settings.onclick = function() {
     document.getElementById('displayInfo').style.filter = "blur(0)";
     document.getElementById('mainHeader').style.filter = "blur(0)";
     document.body.style.backgroundColor = "white";
+    document.getElementById('hierarchicalStructure').style.pointerEvents = "auto";
+     document.getElementById('eventRepresentation').style.pointerEvents = "auto";
+     document.getElementById('newsArticles').style.pointerEvents = "auto";
+     document.getElementById('mainHeader').style.pointerEvents = "auto";
     set_entity_names();
 }
 
@@ -529,6 +594,10 @@ close_related_news.onclick = function() {
     document.getElementById('displayInfo').style.filter = "blur(0)";
     document.getElementById('mainHeader').style.filter = "blur(0)";
     document.body.style.backgroundColor = "white";
+    document.getElementById('hierarchicalStructure').style.pointerEvents = "auto";
+     document.getElementById('eventRepresentation').style.pointerEvents = "auto";
+     document.getElementById('newsArticles').style.pointerEvents = "auto";
+     document.getElementById('mainHeader').style.pointerEvents = "auto";
     set_entity_names();
 }
 
@@ -540,6 +609,10 @@ close_info.onclick = function() {
     document.getElementById('displayInfo').style.filter = "blur(0)";
     document.getElementById('mainHeader').style.filter = "blur(0)";
     document.body.style.backgroundColor = "white";
+    document.getElementById('hierarchicalStructure').style.pointerEvents = "auto";
+     document.getElementById('eventRepresentation').style.pointerEvents = "auto";
+     document.getElementById('newsArticles').style.pointerEvents = "auto";
+     document.getElementById('mainHeader').style.pointerEvents = "auto";
     set_entity_names();
 }
 
@@ -565,6 +638,10 @@ function openSettings(){
      document.getElementById('mainHeader').style.filter = "blur(2px)";
      document.body.style.backgroundColor = "DimGrey";
      modal_settings.style.display = "block";
+     document.getElementById('hierarchicalStructure').style.pointerEvents = "none";
+     document.getElementById('eventRepresentation').style.pointerEvents = "none";
+     document.getElementById('newsArticles').style.pointerEvents = "none";
+     document.getElementById('mainHeader').style.pointerEvents = "none";
 //     document.getElementById("tablinks_place_id").click();
 }
 
@@ -574,6 +651,10 @@ function openInfo(){
      document.getElementById('mainHeader').style.filter = "blur(2px)";
      document.body.style.backgroundColor = "DimGrey";
      modal_info.style.display = "block";
+     document.getElementById('hierarchicalStructure').style.pointerEvents = "none";
+     document.getElementById('eventRepresentation').style.pointerEvents = "none";
+     document.getElementById('newsArticles').style.pointerEvents = "none";
+     document.getElementById('mainHeader').style.pointerEvents = "none";
 //     document.getElementById("tablinks_place_id").click();
 }
 
@@ -676,6 +757,7 @@ function search_focus_node(){
             else {
                 network.focus(data, options_2);
                 network.selectNodes([data], true);
+                changeColors(data);
             }
             }
         else{

@@ -37,6 +37,7 @@ def create_hierarchical_tree_from_cluster_docs(model):
 
 
 def run_Top2Vec():
+    storingAndLoading.store_summaries_voyager({})
     ratio_limit = 95
     Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences, \
     Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict, weights, news_content_length, top2vec_model, category_split = storingAndLoading.loadData()
@@ -83,7 +84,15 @@ def run_Top2Vec():
 
     top2vec_nodes_edges_main = helper.find_related_events(top2vec_nodes_edges_main, cluster_embeddings_dict_full, True)
 
+    top2vec_nodes_edges_main = helper.remove_one_one_nodes(top2vec_nodes_edges_main)
+
+    vectorizer, X = helper.search_tfidf(top2vec_nodes_edges_main)
+
     storingAndLoading.dynamic_store_cluster_name_dict_top2vec(cluster_name_dict)
     storingAndLoading.static_store_cluster_name_dict_top2vec(cluster_name_dict)
     storingAndLoading.storeDynamictop2vecNews(top2vec_nodes_edges_main)
     storingAndLoading.storeStatictop2vecNews(top2vec_nodes_edges_main)
+    storingAndLoading.dynamic_store_tfidf_vectorizer_voyager(vectorizer)
+    storingAndLoading.dynamic_store_tfidf_array_voyager(X)
+    storingAndLoading.static_store_tfidf_vectorizer_voyager(vectorizer)
+    storingAndLoading.static_store_tfidf_array_voyager(X)

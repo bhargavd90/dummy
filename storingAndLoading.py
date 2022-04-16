@@ -4,7 +4,8 @@ from numpyencoder import NumpyEncoder
 
 
 def storeData(Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences, Year_Sentences,
-              Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict, text_dict, ner_dict, pos_dict,
+              Date_Sentences, Time_Sentences, Category_Sentences, cluster_embeddings_dict_full, docs_dict, title_dict,
+              text_dict, ner_dict, pos_dict,
               news_content_length, top2vec_model, category_split):
     print("storing data ...")
     with open('resources/place_sentences', 'wb') as fp:
@@ -194,11 +195,131 @@ def load_dynamic_top2vec_news():
         return json.load(fp)
 
 
-def store_summaries(summaries):
-    with open("title_summary/summaries.json", "w") as outfile:
+def store_summaries_hubble(summaries):
+    with open("title_summary_what/summaries_hubble.json", "w") as outfile:
         json.dump(summaries, outfile, cls=NumpyEncoder)
 
 
-def load_summaries():
-    with open('title_summary/summaries.json', 'rb') as fp:
+def load_summaries_hubble():
+    with open('title_summary_what/summaries_hubble.json', 'rb') as fp:
         return json.load(fp)
+
+
+def store_whats_hubble(whats):
+    with open("title_summary_what/whats_hubble.json", "w") as outfile:
+        json.dump(whats, outfile, cls=NumpyEncoder)
+
+
+def load_whats_hubble():
+    with open('title_summary_what/whats_hubble.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def store_summaries_voyager(summaries):
+    with open("title_summary_what/summaries_voyager.json", "w") as outfile:
+        json.dump(summaries, outfile, cls=NumpyEncoder)
+
+
+def load_summaries_voyager():
+    with open('title_summary_what/summaries_voyager.json', 'rb') as fp:
+        return json.load(fp)
+
+
+def store_whats_voyager(whats):
+    with open("title_summary_what/whats_voyager.json", "w") as outfile:
+        json.dump(whats, outfile, cls=NumpyEncoder)
+
+
+def load_whats_voyager():
+    with open('title_summary_what/whats_voyager.json', 'rb') as fp:
+        return json.load(fp)
+
+
+
+
+
+def dynamic_store_tfidf_vectorizer_hubble(vectorizer):
+    with open('results_dynamic/tfidf_vectorizer_hubble', 'wb') as fp:
+        pickle.dump(vectorizer, fp)
+
+
+def dynamic_store_tfidf_array_hubble(X):
+    with open('results_dynamic/tfidf_array_hubble', 'wb') as fp:
+        pickle.dump(X, fp)
+
+
+def dynamic_store_tfidf_vectorizer_voyager(vectorizer):
+    with open('results_dynamic/tfidf_vectorizer_voyager', 'wb') as fp:
+        pickle.dump(vectorizer, fp)
+
+
+def dynamic_store_tfidf_array_voyager(X):
+    with open('results_dynamic/tfidf_array_voyager', 'wb') as fp:
+        pickle.dump(X, fp)
+
+
+def static_store_tfidf_vectorizer_hubble(vectorizer):
+    with open('results_static/tfidf_vectorizer_hubble', 'wb') as fp:
+        pickle.dump(vectorizer, fp)
+
+
+def static_store_tfidf_array_hubble(X):
+    with open('results_static/tfidf_array_hubble', 'wb') as fp:
+        pickle.dump(X, fp)
+
+
+def static_store_tfidf_vectorizer_voyager(vectorizer):
+    with open('results_static/tfidf_vectorizer_voyager', 'wb') as fp:
+        pickle.dump(vectorizer, fp)
+
+
+def static_store_tfidf_array_voyager(X):
+    with open('results_static/tfidf_array_voyager', 'wb') as fp:
+        pickle.dump(X, fp)
+
+
+
+
+
+
+
+
+
+def dynamic_load_tfidf_vectorizer_hubble():
+    with open('results_dynamic/tfidf_vectorizer_hubble', 'rb') as fp:
+        return pickle.load(fp)
+
+
+def dynamic_load_tfidf_array_hubble():
+    with open('results_dynamic/tfidf_array_hubble', 'rb') as fp:
+        return pickle.load(fp)
+
+
+def dynamic_load_tfidf_vectorizer_voyager():
+    with open('results_dynamic/tfidf_vectorizer_voyager', 'rb') as fp:
+        return pickle.load(fp)
+
+
+def dynamic_load_tfidf_array_voyager():
+    with open('results_dynamic/tfidf_array_voyager', 'rb') as fp:
+        return pickle.load(fp)
+
+
+def static_load_tfidf_vectorizer_hubble():
+    with open('results_static/tfidf_vectorizer_hubble', 'rb') as fp:
+        return pickle.load(fp)
+
+
+def static_load_tfidf_array_hubble():
+    with open('results_static/tfidf_array_hubble', 'rb') as fp:
+        return pickle.load(fp)
+
+
+def static_load_tfidf_vectorizer_voyager():
+    with open('results_static/tfidf_vectorizer_voyager', 'rb') as fp:
+        return pickle.load(fp)
+
+
+def static_load_tfidf_array_voyager():
+    with open('results_static/tfidf_array_voyager', 'rb') as fp:
+        return pickle.load(fp)

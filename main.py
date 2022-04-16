@@ -11,7 +11,7 @@ CORS(app)
 
 # 1-1 edges after finding related events
 # related events complete display ui
-# 3 related events unde rsame parent
+# 3 related events under same parent
 
 
 # cluster.storeHierarchyData()
@@ -60,6 +60,13 @@ def get_summary_for_cluster():
     cluster_method_no = request.args.get('cluster_method_no')
     cluster_summary = cluster.generate_custer_summary(cluster_method_no)
     return cluster_summary
+
+
+@app.route('/get_what_for_cluster')
+def get_what_for_cluster():
+    cluster_method_no = request.args.get('cluster_method_no')
+    cluster_what = cluster.generate_custer_what(cluster_method_no)
+    return cluster_what
 
 
 app.run(host='127.0.0.1', port='8080')

@@ -34,7 +34,7 @@
 <!--            </div>-->
 <!--            <div id="content_capture" class="content_capture">-->
 <!--                Content capture :&nbsp<input type="number" min="0.25" max="5" value="1" step = "0.25" id="content_capture_number">-->
-                <strong>Content Capture &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</strong> <input type="range" min="0.25" max="5" step = 0.25 value="1" class="slider" id="content_capture_number">
+                <strong>Content Capture &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</strong> <input type="range" min="0.25" max="5" step = 0.25 value="3.75" class="slider" id="content_capture_number">
 <!--            </div>-->
 <!--            <div id="hierarchy_display">-->
 <!--                Hierarchical display :&nbsp<input type="checkbox" id="hierarchy_display_checkbox" checked>-->
@@ -71,7 +71,6 @@
         <h3 style="text-align: center; padding-right: 10px;" id = 'relatedNewsHeader'>Related Event</h3>
 
         <div id = "related_news_event_representation">
-
 
 
                 <div class = "block" style="margin-bottom: 30px;">
@@ -215,28 +214,38 @@
 <div id="displayInfo">
 
     <div id="eventRepresentation">
-        <div style="margin-bottom: 30px; font-size: 20px;"><strong>Event Representation</strong>
+        <div class = "main_event_representation_header" style="font-size: 20px;"><strong>Event Representation</strong>
             <strong><div id="event_representation_header">Cluster No</div></strong>
         </div>
-        <br>
-        <div style="margin-bottom: 30px;"><strong>What <i class="bi bi-question-octagon"></i> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp: </strong>
-            <div class="dropdownWithoutEffectWhat"> <strong><div id="what_content">Title</div></strong></div>
+
+        <div class = "main_event_representation_what">
+            <strong>What <i class="bi bi-question-octagon"></i> &nbsp: </strong>
+            <div class="dropdownWithoutEffectWhat">
+                <strong><div id="what_content">Title</div></strong>
+            </div>
         </div>
-        <br>
-        <div style="margin-bottom: 30px;"><strong>Who <i class="bi bi-person"></i> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp:</strong>
-            <strong><div class="dropdown" id = "first_who_content">Person</div></strong>
+
+        <div class = "main_event_representation_who_when_where">
+
+            <div class = "main_event_representation">
+                <strong>Who <i class="bi bi-person"></i> :</strong>
+                <strong><div class="dropdown" id = "first_who_content">Person</div></strong>
+            </div>
+
+            <div class = "main_event_representation">
+                <strong>When <i class="bi bi-calendar"></i> :</strong>
+                <strong><div class="dropdown" id = "first_when_content">Time</div></strong>
+            </div>
+
+            <div class = "main_event_representation">
+                <strong>Where <i class="bi bi-shop"></i> :</strong>
+                <strong><div class="dropdown" id = "first_where_place_content">Place</div></strong>
+    <!--            <strong><div class="dropdown" id = "first_where_country_content">Country</div></strong>-->
+    <!--            <strong><div class="dropdown" id = "first_where_city_content">City</div></strong>-->
+            </div>
+
         </div>
-        <br>
-        <div style="margin-bottom: 30px;"><strong>When <i class="bi bi-calendar"></i> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp:</strong>
-            <strong><div class="dropdown" id = "first_when_content">Time</div></strong>
-        </div>
-        <br>
-        <div style="margin-bottom: 30px;"><strong>Where <i class="bi bi-shop"></i> &nbsp&nbsp&nbsp&nbsp&nbsp:</strong>
-            <strong><div class="dropdown" id = "first_where_place_content">Place</div></strong>
-<!--            <strong><div class="dropdown" id = "first_where_country_content">Country</div></strong>-->
-<!--            <strong><div class="dropdown" id = "first_where_city_content">City</div></strong>-->
-        </div>
-        <br>
+
         <div style="margin-bottom: 30px;"><strong>Related Events <i class="bi bi-columns-gap"></i> :</strong>
             <div class="dropdownWithoutEffectRelated"> <strong><div id="related_events_div">Related Events</div></strong></div>
         </div>

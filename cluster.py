@@ -8,6 +8,7 @@ from anytree import Node
 from fuzzywuzzy import process
 from top2vec import Top2Vec
 import top2vec_baseline
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 # import warnings
@@ -87,21 +88,28 @@ def generateHierarchy(split_entity_list_fromUI, content_depth_needed, content_ca
 
 def search_node(search_term, method_name):
     if method_name == "Hubble":
-        cluster_name_dict = storingAndLoading.dynamic_load_cluster_name_dict_news()
+        vectorizer = storingAndLoading.dynamic_load_tfidf_vectorizer_hubble()
+        X_dict = storingAndLoading.dynamic_load_tfidf_array_hubble()
     elif method_name == "Voyager":
-        cluster_name_dict = storingAndLoading.dynamic_load_cluster_name_dict_top2vec()
-    options = list(cluster_name_dict.values())
-    highest = process.extractOne(search_term, options)
-    if highest[1] >= 60:
-        cluster_label = {k for k, v in cluster_name_dict.items() if v == highest[0]}
-        return "".join(cluster_label).replace("cluster_", "")
+        vectorizer = storingAndLoading.dynamic_load_tfidf_vectorizer_hubble()
+        X_dict = storingAndLoading.dynamic_load_tfidf_array_hubble()
+    search_term_emd = vectorizer.transform([search_term])
+    highest_sim_cluster = ""
+    highest_sim = 0
+    for key, term_emd in X_dict.items():
+        sim = cosine_similarity(search_term_emd, term_emd)[0][0]
+        if sim > highest_sim:
+            highest_sim = sim
+            highest_sim_cluster = key
+    if highest_sim >= 0.4:
+        return "".join(highest_sim_cluster).replace("cluster_", "")
     else:
         return "no_cluster"
 
 
 def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_needed, time_place_weight,
                content_weight, topic_interest_keyword, from_date_keyword, to_date_keyword, ratio_limit):
-    storingAndLoading.store_summaries({})
+    storingAndLoading.store_summaries_hubble({})
     cluster_info_for_not_clustered_data_dict = {}
     Nodes_dict = {}
     entity_naming_dict = {}
@@ -179,12 +187,11 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
             for idx in range(possible_content_depth):
                 weights["content"][str(idx + 1)][1]["cluster_selection_epsilon"] = cluster_selection_epsilon_temp
 
-
     storingAndLoading.storeUseFlat({"useFlat": True})
     time_dict = {v: k for v, k in enumerate(Time_Sentences)}
     category_dict = {v: k for v, k in enumerate(Category_Sentences)}
-    nodes_edges_main['docs_dict'], nodes_edges_main['text_dict'], nodes_edges_main['time_dict'], nodes_edges_main['category_dict'], nodes_edges_main['pos_dict']= docs_dict, text_dict, time_dict, category_dict, pos_dict
-
+    nodes_edges_main['docs_dict'], nodes_edges_main['text_dict'], nodes_edges_main['time_dict'], nodes_edges_main[
+        'category_dict'], nodes_edges_main['pos_dict'] = docs_dict, text_dict, time_dict, category_dict, pos_dict
 
     # possible_content_depth_nodes_edges = 0
     # for node in nodes_edges_main['nodes']:
@@ -205,46 +212,64 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
 
     nodes_edges_main = helper.find_related_events(nodes_edges_main, cluster_embeddings_dict_full, False)
 
-    #nodes_edges_main = helper.post_process(nodes_edges_main)
+    nodes_edges_main = helper.remove_one_one_nodes(nodes_edges_main)
+
+    #vectorizer, X = helper.search_tfidf(nodes_edges_main)
+
+    vectorizer, X = [], []
+
+    # nodes_edges_main = helper.post_process(nodes_edges_main)
 
     storingAndLoading.dynamic_store_cluster_name_dict_news(cluster_name_dict)
     storingAndLoading.static_store_cluster_name_dict_news(cluster_name_dict)
     storingAndLoading.storeDynamicNews(nodes_edges_main)
     storingAndLoading.storeStaticNews(nodes_edges_main)
+    storingAndLoading.dynamic_store_tfidf_vectorizer_hubble(vectorizer)
+    storingAndLoading.dynamic_store_tfidf_array_hubble(X)
+    storingAndLoading.static_store_tfidf_vectorizer_hubble(vectorizer)
+    storingAndLoading.static_store_tfidf_array_hubble(X)
 
 
 def alter_WEHONA(content_depth_needed):
     static_news = storingAndLoading.load_static_news()
     static_search = storingAndLoading.static_load_cluster_name_dict_news()
+    static_X = storingAndLoading.static_load_tfidf_array_hubble()
     nodes = static_news["nodes"]
     weights_list = static_news["weights_list"]
     content_depth_by_weight = static_news["weights_list"][content_depth_needed - 1]
     nodes_updated = []
     search_updated = {}
+    X_updated = {}
     for node in nodes:
         if node["split_with_size"] >= content_depth_by_weight:
             nodes_updated.append(node)
             cluster_number = "cluster_" + str(node["id"])
             search_updated[cluster_number] = static_search[cluster_number]
+            X_updated[cluster_number] = static_X[cluster_number]
     static_news["nodes"] = nodes_updated
     storingAndLoading.storeDynamicNews(static_news)
     storingAndLoading.dynamic_store_cluster_name_dict_news(search_updated)
+    storingAndLoading.dynamic_store_tfidf_array_hubble(X_updated)
 
 
 def alter_Top2Vec(content_depth_needed):
     static_top2vec_news = storingAndLoading.load_static_top2vec_news()
     static_top2vec_search = storingAndLoading.static_load_cluster_name_dict_top2vec()
+    static_X = storingAndLoading.static_load_tfidf_array_voyager()
     nodes = static_top2vec_news["nodes"]
     nodes_updated = []
     search_updated = {}
+    X_updated = {}
     for node in nodes:
         if node["level"] <= content_depth_needed:
             nodes_updated.append(node)
             cluster_number = "cluster_" + str(node["id"])
             search_updated[cluster_number] = static_top2vec_search[cluster_number]
+            X_updated[cluster_number] = static_X[cluster_number]
     static_top2vec_news["nodes"] = nodes_updated
     storingAndLoading.storeDynamictop2vecNews(static_top2vec_news)
     storingAndLoading.dynamic_store_cluster_name_dict_top2vec(search_updated)
+    storingAndLoading.dynamic_store_tfidf_array_voyager(X_updated)
 
 
 # def run_nothing():
@@ -255,15 +280,49 @@ def generate_custer_summary(cluster_method_no):
     cluster_method_no_list = cluster_method_no.split(":")
     cluster_method = cluster_method_no_list[0]
     cluster_no = cluster_method_no_list[1]
-    summaries = storingAndLoading.load_summaries()
-    if cluster_no in summaries:
-        return summaries[cluster_no]
-    else:
-        if cluster_method == "Hubble":
+    if cluster_method == "Hubble":
+        summaries = storingAndLoading.load_summaries_hubble()
+        if cluster_no in summaries:
+            return summaries[cluster_no]
+        else:
             news = storingAndLoading.load_dynamic_news()
-        elif cluster_method == "Voyager":
+            cluster_summary = helper.generate_custer_summary(news, cluster_no)
+            summaries[cluster_no] = cluster_summary
+            storingAndLoading.store_summaries_hubble(summaries)
+            return cluster_summary
+    elif cluster_method == "Voyager":
+        summaries = storingAndLoading.load_summaries_voyager()
+        if cluster_no in summaries:
+            return summaries[cluster_no]
+        else:
             news = storingAndLoading.load_dynamic_top2vec_news()
-        cluster_summary = helper.generate_custer_summary(news, cluster_no)
-        summaries[cluster_no] = cluster_summary
-        storingAndLoading.store_summaries(summaries)
-        return cluster_summary
+            cluster_summary = helper.generate_custer_summary(news, cluster_no)
+            summaries[cluster_no] = cluster_summary
+            storingAndLoading.store_summaries_voyager(summaries)
+            return cluster_summary
+
+
+def generate_custer_what(cluster_method_no):
+    cluster_method_no_list = cluster_method_no.split(":")
+    cluster_method = cluster_method_no_list[0]
+    cluster_no = cluster_method_no_list[1]
+    if cluster_method == "Hubble":
+        whats = storingAndLoading.load_whats_hubble()
+        if cluster_no in whats:
+            return whats[cluster_no]
+        else:
+            news = storingAndLoading.load_dynamic_news()
+            cluster_what = helper.generate_custer_what(news, cluster_no)
+            whats[cluster_no] = cluster_what
+            storingAndLoading.store_whats_hubble(whats)
+            return cluster_what
+    elif cluster_method == "Voyager":
+        whats = storingAndLoading.load_whats_voyager()
+        if cluster_no in whats:
+            return whats[cluster_no]
+        else:
+            news = storingAndLoading.load_dynamic_top2vec_news()
+            cluster_what = helper.generate_custer_what(news, cluster_no)
+            whats[cluster_no] = cluster_what
+            storingAndLoading.store_whats_voyager(whats)
+            return cluster_what

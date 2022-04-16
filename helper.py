@@ -7,7 +7,6 @@ import numpy as np
 import math
 from datetime import datetime
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 import embeddings
 import pytextrank
@@ -15,6 +14,13 @@ import torch
 from collections import Counter
 from sklearn.metrics.pairwise import cosine_similarity
 import copy
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+import storingAndLoading
+
+vectorizer = TfidfVectorizer()
+
 
 nlp = spacy.load('en_core_web_md')
 nlp.add_pipe("textrank")
@@ -179,7 +185,7 @@ def create_content_weights(no_of_docs, weights, content_capture_needed):
 
     weights_parameters_list = []
     content_depth_needed = 100
-    mul = no_of_docs / 40
+    mul = no_of_docs / 20
     data = np.arange(0, content_depth_needed, 1)
     probdf = halfnorm.pdf(data, loc=mean, scale=content_capture_needed)
     div = (math.ceil(probdf[0] * 1000))
@@ -264,7 +270,17 @@ def generate_custer_summary(news, cluster_no):
     summary_sentence = "<strong>->  </strong>"
     summary_sentence_list = []
     summary_sentence_dict = {}
-    for doc_id in doc_ids_in_cluster[0:10]:
+    docs_required = 10
+    split = int(len(doc_ids_in_cluster) / docs_required)
+    elements_needed = []
+    counter = -1
+    for i in doc_ids_in_cluster:
+        counter = counter + 1
+        if counter == 0:
+            elements_needed.append(i)
+        if counter == split:
+            counter = -1
+    for doc_id in elements_needed:
         total_text_from_cluster = total_text_from_cluster + text_dict[str(doc_id)] + ". "
     summaryDoc = nlp(total_text_from_cluster.strip(". "))
     for summary_sent_doc in summaryDoc._.textrank.summary(limit_phrases=100, limit_sentences=50):
@@ -289,6 +305,52 @@ def generate_custer_summary(news, cluster_no):
     for key in summary_sentence_dict.keys():
         summary_sentence = summary_sentence + key + ". " + "<br>" + "<strong>->  </strong>"
     return summary_sentence.rstrip("<strong>->  </strong>")
+
+
+def generate_custer_what(news, cluster_no):
+    docs_dict = news["text_dict"]
+    doc_ids_in_cluster = news["cluster_dict"][cluster_no]
+    total_text_from_cluster = ""
+    what_sentence = ""
+    what_sentence_list = []
+    what_sentence_dict = {}
+    docs_required = 10
+    split = int(len(doc_ids_in_cluster) / docs_required)
+    elements_needed = []
+    counter = -1
+    for i in doc_ids_in_cluster:
+        counter = counter + 1
+        if counter == 0:
+            elements_needed.append(i)
+        if counter == split:
+            counter = -1
+    for doc_id in elements_needed:
+        total_text_from_cluster = total_text_from_cluster + docs_dict[str(doc_id)] + ". "
+    whatDoc = nlp(total_text_from_cluster.strip(". "))
+    for phrase in whatDoc._.phrases:
+        what_sentence_list.append(phrase.text)
+
+    for index, what_sent in enumerate(what_sentence_list):
+        if len(what_sentence_dict) > 3:
+            break
+        if index == 0:
+            what_sentence_dict[str(what_sent)] = model.encode(str(what_sent))
+        else:
+            flag_list = []
+            for what_sent_key, what_sent_value in what_sentence_dict.items():
+                doc_emb = model.encode(str(what_sent))
+                sim = round(cosine_similarity([doc_emb], [what_sent_value]).item(), 3)
+                if sim < 0.3:
+                    flag_list.append("add")
+                else:
+                    flag_list.append("delete")
+            if not "delete" in flag_list:
+                what_sentence_dict[str(what_sent)] = doc_emb
+
+    for key in what_sentence_dict.keys():
+        what_sentence = what_sentence + key + ", "
+
+    return what_sentence.strip(", ")
 
 
 def find_related_events(nodes_edges_main, cluster_embeddings_dict_full, from_top2_vec):
@@ -335,7 +397,7 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full, from_top
         for_cluster_id = int(for_cluster.replace("cluster_", ""))
 
         if not from_top2_vec:
-            condition = for_cluster_id not in edges_dict_from #and nodes_dict_id[for_cluster_id][0] != 1
+            condition = for_cluster_id not in edges_dict_from  # and nodes_dict_id[for_cluster_id][0] != 1
         else:
             condition = for_cluster_id not in edges_dict_from
 
@@ -347,10 +409,9 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full, from_top
                 to_cluster = cluster_names[index_of_highest_similarity]
                 to_cluster_id = int(to_cluster.replace("cluster_", ""))
                 if to_cluster_id not in edges_dict_from:
-                    if sim_value == 1 or nodes_branch_dict[for_cluster] == nodes_branch_dict[
-                        to_cluster] or index_of_highest_similarity == 0:
+                    if sim_value == 1 or index_of_highest_similarity == 0:  # or nodes_branch_dict[for_cluster] == nodes_branch_dict[to_cluster]
                         continue
-                    if sim_value < 0.4:
+                    if sim_value < 0.5:
                         break
                     if sim_value > 0.7:
                         docs_to_alter = cluster_dict["cluster_" + str(to_cluster_id)]
@@ -372,7 +433,7 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full, from_top
                                 cluster_dict["cluster_" + str(from_node_add)] = list(
                                     set(cluster_dict["cluster_" + str(from_node_add)]).union(set(docs_to_alter)))
                             cluster_id_to_temp = from_node_add
-                    elif 0.4 < sim_value < 0.7:
+                    elif 0.5 < sim_value < 0.7 and nodes_branch_dict[for_cluster] != nodes_branch_dict[to_cluster]:
                         to_cluster_list.append([to_cluster, nodes_color_dict[to_cluster]])
                     # count = count + 1
             related_events_dict[for_cluster] = to_cluster_list
@@ -380,7 +441,7 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full, from_top
             related_events_dict[for_cluster] = []
 
     related_events_dict["cluster_0"] = []
-    nodes_dict_updated, related_dict_updated = remove_empty_clusters(cluster_dict, nodes_dict_id, nodes_dict,
+    nodes_dict_updated, related_dict_updated = remove_empty_clusters(cluster_dict, nodes_dict_id, nodes_dict, edges_dict,
                                                                      related_events_dict, edges_dict_from)
     nodes_edges_main["cluster_dict"] = cluster_dict
     nodes_edges_main["nodes"] = nodes_dict_updated
@@ -404,7 +465,7 @@ def create_cluster_match(nodes_edges_main, cluster_embeddings_dict_full):
     return nodes_edges_main
 
 
-def remove_empty_clusters(cluster_dict, nodes_dict_id, nodes_dict, related_events_dict, edges_dict_from):
+def remove_empty_clusters(cluster_dict, nodes_dict_id, nodes_dict, edges_dict, related_events_dict, edges_dict_from):
     nodes_remove_list = []
     related_dict_updated = {}
     for key, value in cluster_dict.items():
@@ -432,6 +493,83 @@ def split_by_category(df):
     for category in category_list:
         ids_based_on_labels.append(df.index[df['category'] == category].tolist())
     return ids_based_on_labels
+
+
+def preprocessor(text):
+    if type(text) == str and not text.isnumeric():
+        text = re.sub('\W+','', text)
+        return text.lower()
+    else:
+        return ""
+
+
+def get_pre_processed_title(title):
+    doc = nlp(title)
+    lemma_list = []
+    for token in doc:
+        if token.is_stop is False:
+            token_preprocessed = preprocessor(token.lemma_)
+            if token_preprocessed != '':
+                lemma_list.append(token_preprocessed)
+    return " ".join(lemma_list)
+
+
+def search_tfidf(nodes_edges_main):
+    docs_dict = nodes_edges_main["docs_dict"]
+    cluster_dict = nodes_edges_main["cluster_dict"]
+    cluster_sentences_dict = {}
+    X_dict = {}
+    for key, value in cluster_dict.items():
+        sentence = ""
+        for id in value:
+            title = docs_dict[id]
+            sentence = sentence + get_pre_processed_title(title) + " "
+        cluster_sentences_dict[key] = sentence
+    corpus = list(cluster_sentences_dict.values())
+    X = vectorizer.fit_transform(corpus)
+    for index, key in enumerate(cluster_dict.keys()):
+        X_dict[key] = X[index]
+    return vectorizer, X_dict
+
+
+def remove_one_one_nodes(nodes_edges_main):
+    cluster_dict = nodes_edges_main['cluster_dict']
+    cluster_dict_updated = {}
+    edges_dict = nodes_edges_main['edges']
+    nodes_dict = nodes_edges_main['nodes']
+    nodes_temp = {}
+    edge_data = {}
+
+    for node in nodes_dict:
+        nodes_temp[node["id"]] = node
+        edge_list = []
+        for edge in edges_dict:
+            if edge["from"] == node["id"]:
+                edge_list.append(edge["to"])
+        edge_data[node["id"]] = edge_list
+
+    for key, value in cluster_dict.items():
+        if value in cluster_dict_updated.values():
+            if int(key.replace("cluster_", "")) in nodes_temp:
+                key_list = list(cluster_dict_updated.keys())
+                val_list = list(cluster_dict_updated.values())
+                from_node = int(key_list[val_list.index(value)].replace("cluster_", ""))
+                to_node = edge_data[int(key.replace("cluster_", ""))]
+                nodes_dict.remove(nodes_temp[int(key.replace("cluster_", ""))])
+                for t_n in to_node:
+                    edge = {"from": from_node, "to": t_n, "label": "content", "font": {"align": "middle"}}
+                    edges_dict.append(edge)
+                    if t_n in nodes_temp:
+                        temp_node = nodes_temp[t_n]
+                        nodes_dict.remove(temp_node)
+                        temp_node["level"] = temp_node["level"] - 1
+                        nodes_dict.append(temp_node)
+        else:
+            cluster_dict_updated[key] = value
+    nodes_edges_main["edges"] = edges_dict
+    nodes_edges_main["nodes"] = nodes_dict
+    return nodes_edges_main
+
 
 # def remove_empty_clusters(related_dict_updated, cluster_dict, nodes_dict_id, nodes_dict, edges_dict_from):
 #     nodes_remove_list = []

@@ -48,7 +48,8 @@
     border: 2px solid gray;
     border-radius : 10px;
     margin-top: 10px;
-    /*background-color: #ffffff;*/
+    pointer-events: auto;
+    /*background-color: beige;*/
 }
 
 /*#displayInfo {
@@ -64,6 +65,7 @@ header {
     background-color: LightSlateGrey;
     border: 2px solid gray;
     border-radius: 10px;
+    pointer-events: auto;
   }
 
 body{
@@ -88,19 +90,21 @@ body{
 #eventRepresentation {
     width : 49%;
     float : right;
-    height: 345px;
+    height: 220px;
     border: 2px solid gray;
     padding-left: 5px;
     padding-top: 5px;
     border-radius : 10px;
     margin-bottom: 3px;
     margin-top: 10px;
+    background-color: beige;
+    pointer-events: auto;
 }
 
 #newsArticles {
     width : 49%;
     float : right;
-    height: 345px;
+    height: 470px;
     border: 2px solid gray;
     overflow: scroll;
     overflow-x: hidden;
@@ -108,8 +112,9 @@ body{
     padding-top: 5px;
     border-radius : 10px;
     margin-top: 3px;
+    pointer-events: auto;
 
-    /*background-color: #78909c;*/
+    /*background-color: lightslategray;*/
 }
 
 
@@ -310,7 +315,7 @@ margin:0.25em;
 .dropdown {
   position: relative;
   display: inline-block;
-  margin-left: 50px;
+  margin-left: 5px;
   border: 1.5px solid black;
   border-radius : 10px;
   padding: 3px 8px 3px 8px;
@@ -342,19 +347,19 @@ margin:0.25em;
     /*background-color: LightSteelBlue;*/
     background-color: #7CB9E8;
     cursor: pointer;
-    transform: scale(1.5);
+    transform: scale(1.05);
     z-index : 1;
 }
 
 .dropdownWithoutEffectWhat {
-  position: relative;
+  position: absolute;
   display: inline-block;
-  margin-left: 50px;
+  margin-left: 5px;
   padding: 2px;
   white-space: nowrap;
   overflow: hidden;
   /*text-overflow: ellipsis;*/
-  max-width: 520px;
+  max-width: 600px;
 }
 
 .dropdownWithoutEffectRelated {
@@ -979,3 +984,15 @@ font-weight: bold;
     display: inline-block;
 }
 
+.main_event_representation_header, .main_event_representation_what{
+    margin-bottom: 30px;
+}
+
+.main_event_representation_who_when_where{
+    margin-bottom: 30px;
+}
+
+.main_event_representation{
+    margin-right: 20px;
+    display: inline-block;
+}

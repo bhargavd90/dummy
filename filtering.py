@@ -183,10 +183,10 @@ def eventRepresentation(nodes_edges_main, title_dict, text_dict, Place_Sentences
         Date_dict["Date_" + cluster_name] = get_unique_list_based_on_fuzzy_matching(date_words, ratio_limit)[0:10]
 
         # titleDoc = nlp(Title_Sentence_all.strip(". "))
-        # for title_sent in titleDoc._.textrank.title_summary(limit_phrases=100, limit_sentences=1):
+        # for title_sent in titleDoc._.textrank.title_summary_what(limit_phrases=100, limit_sentences=1):
         #     Title_Sentence = Title_Sentence + str(title_sent) + ". "
         # summaryDoc = nlp(Summary_Sentence_all.strip(". "))
-        # for summary_sent in summaryDoc._.textrank.title_summary(limit_phrases=100, limit_sentences=5):
+        # for summary_sent in summaryDoc._.textrank.title_summary_what(limit_phrases=100, limit_sentences=5):
         #     Summary_Sentence = Summary_Sentence + str(summary_sent) + ". "
 
         Title_dict["Title_" + cluster_name] = Title_Sentence
