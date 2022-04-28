@@ -16,11 +16,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 import copy
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
+import operator
 
 import storingAndLoading
 
 vectorizer = TfidfVectorizer()
-
 
 nlp = spacy.load('en_core_web_md')
 nlp.add_pipe("textrank")
@@ -441,7 +441,8 @@ def find_related_events(nodes_edges_main, cluster_embeddings_dict_full, from_top
             related_events_dict[for_cluster] = []
 
     related_events_dict["cluster_0"] = []
-    nodes_dict_updated, related_dict_updated = remove_empty_clusters(cluster_dict, nodes_dict_id, nodes_dict, edges_dict,
+    nodes_dict_updated, related_dict_updated = remove_empty_clusters(cluster_dict, nodes_dict_id, nodes_dict,
+                                                                     edges_dict,
                                                                      related_events_dict, edges_dict_from)
     nodes_edges_main["cluster_dict"] = cluster_dict
     nodes_edges_main["nodes"] = nodes_dict_updated
@@ -460,6 +461,7 @@ def create_cluster_match(nodes_edges_main, cluster_embeddings_dict_full):
             emb = content_embeddings[[id]]
             sim = cosine_similarity(cluster_mean, emb)[0][0]
             sim_to_center[str(id)] = sim
+        # sim_to_center_sorted = dict(sorted(sim_to_center.items(), key=operator.itemgetter(1), reverse = True))
         cluster_centroids_dict[key] = sim_to_center
     nodes_edges_main["cluster_centroids_dict"] = cluster_centroids_dict
     return nodes_edges_main
@@ -497,7 +499,7 @@ def split_by_category(df):
 
 def preprocessor(text):
     if type(text) == str and not text.isnumeric():
-        text = re.sub('\W+','', text)
+        text = re.sub('\W+', '', text)
         return text.lower()
     else:
         return ""
@@ -566,10 +568,22 @@ def remove_one_one_nodes(nodes_edges_main):
                         nodes_dict.append(temp_node)
         else:
             cluster_dict_updated[key] = value
-    nodes_edges_main["edges"] = edges_dict
-    nodes_edges_main["nodes"] = nodes_dict
-    return nodes_edges_main
 
+    edge_from = []
+    for edge in edges_dict:
+        edge_from.append(edge["from"])
+    nodes_dict_updated = []
+    for node in nodes_dict:
+        if node["id"] in edge_from:
+            node["last"] = False
+        else:
+            node["last"] = True
+        nodes_dict_updated.append(node)
+
+    nodes_edges_main["edges"] = edges_dict
+    nodes_edges_main["nodes"] = nodes_dict_updated
+
+    return nodes_edges_main
 
 # def remove_empty_clusters(related_dict_updated, cluster_dict, nodes_dict_id, nodes_dict, edges_dict_from):
 #     nodes_remove_list = []

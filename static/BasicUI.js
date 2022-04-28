@@ -327,22 +327,26 @@ function addKeywords(newDiv, keywords) {
 }
 
 function addNews(params){
-docs_in_cluster = cluster_dict["cluster_" + params.nodes[0].toString()]
+let docs_in_cluster = cluster_match_dict["cluster_" + params.nodes[0].toString()];
+let docs_in_cluster_sorted = sort_object(docs_in_cluster);
+let keys = docs_in_cluster_sorted[0];
+let values = docs_in_cluster_sorted[1];
 document.getElementById('newsArticlesText').innerHTML = '';
- for (k = 0; k < docs_in_cluster.length; k++){
-            doc_no = docs_in_cluster[k]
-            var newDiv = document.createElement('div');
-            newDiv.fulltext = text_dict[doc_no];
+
+ for (let i=0; i<keys.length; i++) {
+            let doc_no = keys[i];
+     let newDiv = document.createElement('div');
+     newDiv.fulltext = text_dict[doc_no];
             newDiv.heading = docs_dict[doc_no];
             newDiv.id = 'doc_'+ doc_no;
             newDiv.className = 'cluster';
             newDiv.innerHTML = "<strong>"+docs_dict[doc_no]+"</strong>";
 
-            var catDatCluDiv = document.createElement('div');
-            catDatCluDiv.className = 'catDatCluDiv';
+     let catDatCluDiv = document.createElement('div');
+     catDatCluDiv.className = 'catDatCluDiv';
             catDatCluDiv = addCategory(catDatCluDiv, category_dict[doc_no]);
             catDatCluDiv = addDateTime(catDatCluDiv, time_dict[doc_no]);
-            catDatCluDiv = addClusterMatch(catDatCluDiv, cluster_match_dict["cluster_" + params.nodes[0].toString()][doc_no]);
+            catDatCluDiv = addClusterMatch(catDatCluDiv, values[i]);
             newDiv.appendChild(catDatCluDiv)
 
             newDiv = addKeywords(newDiv, pos_dict[doc_no]);
@@ -352,26 +356,64 @@ document.getElementById('newsArticlesText').innerHTML = '';
 }
 
 
-function changeColors(params) {
+function changeColors(params, search_flag) {
+    nodes.update(n_unchanged);
     if(params !== null) {
-        if (typeof params === "object") {
-            let nodeID = params.nodes[0];
-            let related_nodeId;
-            if (nodeID) {
-                n = n_unchanged;
-                nodes.update(n);
-                let related_nodes_for_cluster = [];
-                let related_events_in_cluster = related_events["cluster_" + params.nodes[0].toString()]
-                let connected_nodes = network.getConnectedNodes(nodeID);
-                for (let m = 0; m < related_events_in_cluster.length; m++) {
-                    related_nodeId = related_events_in_cluster[m][0].substring(8,);
-                    related_nodes_for_cluster.push(parseInt(related_nodeId));
+        if (typeof params !== 'undefined') {
+            if (!search_flag) {
+                let nodeID = params.nodes[0];
+                let related_nodeId;
+                if (nodeID) {
+                    n = n_unchanged;
+                    nodes.update(n);
+                    let related_nodes_for_cluster = [];
+                    let related_events_in_cluster = related_events["cluster_" + params.nodes[0].toString()]
+                    let connected_nodes = network.getConnectedNodes(nodeID);
+                    for (let m = 0; m < related_events_in_cluster.length; m++) {
+                        related_nodeId = related_events_in_cluster[m][0].substring(8,);
+                        related_nodes_for_cluster.push(parseInt(related_nodeId));
+                    }
+                    let final_nodes = connected_nodes.concat(related_nodes_for_cluster)
+                    final_nodes.push(nodeID);
+                    for (let k = 0; k < n_list.length; k++) {
+                        if (!final_nodes.includes(n_list[k])) {
+                            const unClickedNode = nodes.get(n_list[k]);
+                            unClickedNode.borderWidth = 1;
+                            unClickedNode.color = {
+                                border: '#808080',
+                                background: '#D3D3D3'
+                                // highlight: {
+                                //     border: '#808080',
+                                //     background: '#808080',
+                                // }
+                            }
+                            nodes.update(unClickedNode);
+                        }
+                        // else {
+                        //     const clickedNode = nodes.get(n_list[k]);
+                        //     clickedNode.borderWidth = 2;
+                        //     nodes.update(clickedNode);
+                        // }
+                    }
                 }
-                let final_nodes = connected_nodes.concat(related_nodes_for_cluster)
-                final_nodes.push(nodeID);
+            } else {
+                let final_nodes = [];
+                for (const [key, value] of Object.entries(params)) {
+                    const last_child_verify_node = nodes.get(parseInt(key));
+                    try {
+                        if (last_child_verify_node.last) {
+                            final_nodes.push(parseInt(key));
+                        }
+                    }
+                    catch{
+                        // need to check why "last_child_verify_node" is null for top2vec
+                        // probably because of removing a node as part of related event
+                    }
+                }
                 for (let k = 0; k < n_list.length; k++) {
                     if (!final_nodes.includes(n_list[k])) {
                         const unClickedNode = nodes.get(n_list[k]);
+                        unClickedNode.borderWidth = 1;
                         unClickedNode.color = {
                             border: '#808080',
                             background: '#D3D3D3'
@@ -381,26 +423,21 @@ function changeColors(params) {
                             // }
                         }
                         nodes.update(unClickedNode);
+                    } else {
+                        const clickedNode = nodes.get(n_list[k]);
+                        clickedNode.borderWidth = 1 + (2 * params[clickedNode.id]);
+                        nodes.update(clickedNode);
                     }
                 }
             }
-        } else {
-            let final_nodes = []
-            final_nodes.push(params);
-                for (let k = 0; k < n_list.length; k++) {
-                    if (!final_nodes.includes(n_list[k])) {
-                        const unClickedNode = nodes.get(n_list[k]);
-                        unClickedNode.color = {
-                            border: '#808080',
-                            background: '#D3D3D3'
-                            // highlight: {
-                            //     border: '#808080',
-                            //     background: '#808080',
-                            // }
-                        }
-                        nodes.update(unClickedNode);
-                    }
+        }
+        else{
+            for (let k = 0; k < n_list.length; k++) {
+                const unClickedNode = nodes.get(n_list[k]);
+                unClickedNode.borderWidth = 1;
+                nodes.update(unClickedNode);
                 }
+
         }
     }
 
@@ -420,11 +457,12 @@ function click(){
         addNews(params);
         addSummary(params);
         addRelatedEvents(params);
-        changeColors(params);
+        changeColors(params, false);
     }
     else{
         nodes.update(n_unchanged);
         reset_event_representation_news_content();
+        changeColors(clicked_node, false);
     }
 
 
@@ -743,7 +781,6 @@ function search_focus_node(){
     url: python_url + search_term + method_name,
     type: 'GET',
     success: function(data){
-        if(typeof +data == "number"){
             if(data == "no_cluster"){
                 swal({
           title: "Could not find a matching cluster",
@@ -755,20 +792,9 @@ function search_focus_node(){
         })
             }
             else {
-                network.focus(data, options_2);
-                network.selectNodes([data], true);
-                changeColors(data);
-            }
-            }
-        else{
-            swal({
-          title: "Could not find a matching cluster",
-          text: " ",
-          icon: "error",
-          buttons: false,
-          timer: 1000,
-          closeOnClickOutside: false
-        })
+                // network.focus(data, options_2);
+                // network.selectNodes([data], true);
+                changeColors(data, true);
             }
     }
 });
@@ -1023,3 +1049,18 @@ document.getElementById('relatedNewsArticlesText').innerHTML = '';
         }
 }
 
+function sort_object(obj) {
+    let items = Object.keys(obj).map(function (key) {
+        return [key, obj[key]];
+    });
+    items.sort(function(first, second) {
+        return second[1] - first[1];
+    });
+    let key_list = []
+    let value_list = []
+    for(let i=0; i<items.length; i++){
+       key_list.push(items[i][0]);
+       value_list.push(items[i][1]);
+    }
+    return [key_list, value_list];
+}

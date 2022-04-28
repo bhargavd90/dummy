@@ -91,20 +91,30 @@ def search_node(search_term, method_name):
         vectorizer = storingAndLoading.dynamic_load_tfidf_vectorizer_hubble()
         X_dict = storingAndLoading.dynamic_load_tfidf_array_hubble()
     elif method_name == "Voyager":
-        vectorizer = storingAndLoading.dynamic_load_tfidf_vectorizer_hubble()
-        X_dict = storingAndLoading.dynamic_load_tfidf_array_hubble()
+        vectorizer = storingAndLoading.dynamic_load_tfidf_vectorizer_voyager()
+        X_dict = storingAndLoading.dynamic_load_tfidf_array_voyager()
     search_term_emd = vectorizer.transform([search_term])
-    highest_sim_cluster = ""
-    highest_sim = 0
+    sim_cluster = {}
     for key, term_emd in X_dict.items():
         sim = cosine_similarity(search_term_emd, term_emd)[0][0]
-        if sim > highest_sim:
-            highest_sim = sim
-            highest_sim_cluster = key
-    if highest_sim >= 0.4:
-        return "".join(highest_sim_cluster).replace("cluster_", "")
+        if sim > 0:
+            sim_cluster["".join(key).replace("cluster_", "")] = sim
+    if len(sim_cluster) > 0:
+        return sim_cluster
     else:
         return "no_cluster"
+
+    # highest_sim_cluster = ""
+    # highest_sim = 0
+    # for key, term_emd in X_dict.items():
+    #     sim = cosine_similarity(search_term_emd, term_emd)[0][0]
+    #     if sim > highest_sim:
+    #         highest_sim = sim
+    #         highest_sim_cluster = key
+    # if highest_sim >= 0:
+    #     return "".join(highest_sim_cluster).replace("cluster_", "")
+    # else:
+    #     return "no_cluster"
 
 
 def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_needed, time_place_weight,
@@ -214,9 +224,9 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
 
     nodes_edges_main = helper.remove_one_one_nodes(nodes_edges_main)
 
-    #vectorizer, X = helper.search_tfidf(nodes_edges_main)
+    vectorizer, X = helper.search_tfidf(nodes_edges_main)
 
-    vectorizer, X = [], []
+    # vectorizer, X = [], []
 
     # nodes_edges_main = helper.post_process(nodes_edges_main)
 
