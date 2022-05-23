@@ -398,16 +398,20 @@ function changeColors(params, search_flag) {
                 }
             } else {
                 let final_nodes = [];
-                for (const [key, value] of Object.entries(params)) {
-                    const last_child_verify_node = nodes.get(parseInt(key));
-                    try {
-                        if (last_child_verify_node.last) {
-                            final_nodes.push(parseInt(key));
+                if (typeof params == "string"){
+                   final_nodes.push(parseInt(params));
+                }
+                else {
+                    for (const [key, value] of Object.entries(params)) {
+                        const last_child_verify_node = nodes.get(parseInt(key));
+                        try {
+                            if (last_child_verify_node.last) {
+                                final_nodes.push(parseInt(key));
+                            }
+                        } catch {
+                            // need to check why "last_child_verify_node" is null for top2vec
+                            // probably because of removing a node as part of related event
                         }
-                    }
-                    catch{
-                        // need to check why "last_child_verify_node" is null for top2vec
-                        // probably because of removing a node as part of related event
                     }
                 }
                 for (let k = 0; k < n_list.length; k++) {
@@ -766,6 +770,8 @@ function cluster_method_change(){
 
 
 function search_focus_node(){
+  reset_event_representation_news_content();
+  network.selectNodes([], true);
   var options_2 = {
     scale: 0.2,
     offset: { x: 0, y: 0},
@@ -789,7 +795,8 @@ function search_focus_node(){
           buttons: false,
           timer: 1000,
           closeOnClickOutside: false
-        })
+        });
+                changeColors({}, true);
             }
             else {
                 // network.focus(data, options_2);
@@ -847,6 +854,7 @@ document.getElementById("first_when_content").innerHTML = "Time";
 document.getElementById("first_where_place_content").innerHTML = "Place";
 document.getElementById("newsArticlesText").innerHTML = "";
 document.getElementById("related_events_div").innerHTML = "Related Events";
+document.getElementById('summary_button').style.display = "none";
 //document.getElementById('summary_content').innerHTML = "Summary"
 }
 
