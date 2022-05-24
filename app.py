@@ -17,6 +17,10 @@ CORS(app)
 # cluster.storeHierarchyData()
 # cluster.generateHierarchy(["content"], 2, 0, 1)
 
+@app.route('/test_heroku')
+def test_heroku():
+    return "heroku working"
+
 
 @app.route('/generate_hierarchy')
 def generate_hierarchy():
