@@ -1,20 +1,14 @@
 from sentence_transformers import SentenceTransformer
 import umap as umap
 import numpy as np
-import torch
 
-# from gensim.models import Word2Vec
+#from gensim.models import Word2Vec
 # model = Word2Vec(sentences=sentences_list, vector_size=100, window=5, min_count=1, workers=4)
 # model.save("word2vec.model")
 
 
 sbert_model_name = 'paraphrase-MiniLM-L3-v2'
 sbert_model = SentenceTransformer(sbert_model_name)
-
-print('CUDA Device count', torch.cuda.device_count())
-if torch.cuda.device_count() >= 1:
-    device = torch.device("cuda:0")
-    sbert_model.to(device)
 
 
 def get_embeddings(sentences_list, content_flag, unique_ner_dict, unique_pos_dict):

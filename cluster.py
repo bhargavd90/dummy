@@ -5,10 +5,11 @@ import filtering
 import preprocessData
 import storingAndLoading
 from anytree import Node
-from fuzzywuzzy import process
-from top2vec import Top2Vec
+#from fuzzywuzzy import process
+# from top2vec import Top2Vec
 import top2vec_baseline
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.metrics import silhouette_score
 
 
 # import warnings
@@ -40,7 +41,9 @@ def storeHierarchyData():
     #     news_publisher_title, title,
     #     news_content_WO_preprocssing)
 
-    top2vec_model = Top2Vec(documents=news_content, speed="learn", workers=8)
+    # top2vec_model = Top2Vec(documents=news_content, speed="learn", workers=8)
+
+    top2vec_model = "no model"
 
     storingAndLoading.storeData(Place_Sentences, Person_Sentences, Content_Sentences, Day_Sentences, Month_Sentences,
                                 Year_Sentences, Date_Sentences, Time_Sentences, Category_Sentences,
@@ -94,8 +97,10 @@ def search_node(search_term, method_name):
         vectorizer = storingAndLoading.dynamic_load_tfidf_vectorizer_voyager()
         X_dict = storingAndLoading.dynamic_load_tfidf_array_voyager()
     search_term_emd = vectorizer.transform([search_term])
+    print(search_term_emd)
     sim_cluster = {}
     for key, term_emd in X_dict.items():
+        print(term_emd)
         sim = cosine_similarity(search_term_emd, term_emd)[0][0]
         if sim > 0:
             sim_cluster["".join(key).replace("cluster_", "")] = sim
@@ -119,6 +124,7 @@ def search_node(search_term, method_name):
 
 def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_needed, time_place_weight,
                content_weight, topic_interest_keyword, from_date_keyword, to_date_keyword, ratio_limit):
+    storingAndLoading.storeSilhoutte({})
     storingAndLoading.store_summaries_hubble({})
     cluster_info_for_not_clustered_data_dict = {}
     Nodes_dict = {}
@@ -130,6 +136,7 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
     clusters_to_furthur_split = helper.fetchDocumentstoSplit(text_dict, Date_Sentences, topic_interest_keyword,
                                                              from_date_keyword, to_date_keyword,
                                                              news_content_length)
+
     if not clusters_to_furthur_split:
         raise Exception("Unable to find documents for the given filters")
     weights, possible_content_depth, weights_parameters_list = helper.create_content_weights(
@@ -154,11 +161,13 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
 
     split_with_size = weights["content"][str(content_depth_now)][1]["min_cluster_size"]
 
-    parent_cluster_main_phase_1, cluster_info_for_not_clustered_data_dict, clusters_to_furthur_split, Nodes_dict, ids_based_on_labels, entity_name_list, entity_naming_dict, content_depth_now, splitted = splitting.split_for_3_levels(
+    parent_cluster_main_phase_1, cluster_info_for_not_clustered_data_dict, clusters_to_furthur_split, Nodes_dict, \
+    ids_based_on_labels, entity_name_list, entity_naming_dict, content_depth_now, splitted = splitting.split_for_3_levels(
         cluster_embeddings_dict_full, split_entity_list[0], weights, parent_cluster_main_phase_1,
         clusters_to_furthur_split, cluster_info_for_not_clustered_data_dict, Nodes_dict, entity_naming_dict, True,
         content_depth_now, time_place_weight, content_weight, category_split)
 
+    # not using pos weighting
     if splitted:
         content_weight_temp = content_weight_temp + 0.1
         pos_weight_temp = pos_weight_temp - 0.1
@@ -213,6 +222,12 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
     nodes_edges_main['possible_content_depth'] = possible_content_depth
     nodes_edges_main['weights_list'] = weights_parameters_list
 
+    # used to calculated silhoutte scores of only child events
+    # nodes_edges_main = helper.remove_one_one_nodes(nodes_edges_main)  # delete once done
+    # weighted_embeddings_temp = embeddings.get_weighted_embeddings(cluster_embeddings_dict_full, [0, 0, 0, 0, 1, 0, 0, 0, 1])
+    # silhoutte_score_child_labels = helper.get_silhoutte_score_child_labels(nodes_edges_main)
+    # return silhouette_score(weighted_embeddings_temp, silhoutte_score_child_labels)
+
     nodes_edges_main = filtering.eventRepresentation(nodes_edges_main, title_dict, text_dict, Place_Sentences,
                                                      Person_Sentences,
                                                      Date_Sentences, ratio_limit)
@@ -220,7 +235,7 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
                                                                        ratio_limit)
     nodes_edges_main = helper.create_cluster_match(nodes_edges_main, cluster_embeddings_dict_full)
 
-    nodes_edges_main = helper.find_related_events(nodes_edges_main, cluster_embeddings_dict_full, False)
+    # nodes_edges_main = helper.find_related_events(nodes_edges_main, cluster_embeddings_dict_full, False)
 
     nodes_edges_main = helper.remove_one_one_nodes(nodes_edges_main)
 
@@ -238,6 +253,10 @@ def run_WEHONA(split_entity_list_fromUI, content_depth_needed, content_capture_n
     storingAndLoading.dynamic_store_tfidf_array_hubble(X)
     storingAndLoading.static_store_tfidf_vectorizer_hubble(vectorizer)
     storingAndLoading.static_store_tfidf_array_hubble(X)
+
+
+    # for calculating silhoutte score per level
+    helper.calculateSilhoutte(nodes_edges_main)
 
 
 def alter_WEHONA(content_depth_needed):

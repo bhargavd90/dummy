@@ -28,17 +28,33 @@ def get_cluster_labels(weighted_embeddings, hdbscan_dict, is_first):
 
 
 # check what to keep for -1 label
-def perform_split(cluster_data, complete_weights, hdbscan_dict, is_first):
+def perform_split(cluster_data, complete_weights, hdbscan_dict, is_first, clusters_to_furthur_split=["need to write code"], category_split = ["need to write code"]):
     cluster_embeddings_dict = cluster_data[0]
     weighted_embeddings = embeddings.get_weighted_embeddings(cluster_embeddings_dict, complete_weights)
     if (len(weighted_embeddings)) > 1:
-        cluster_labels = get_cluster_labels(weighted_embeddings, hdbscan_dict, is_first)
+        if is_first:
+            cluster_labels_dict = {}
+            label = 0
+            for category in category_split:
+                for id in category:
+                    cluster_labels_dict[id] = label
+                label = label + 1
+            sorted_dict = dict(sorted(cluster_labels_dict.items()))
+            cluster_labels = np.asarray(list(sorted_dict.values()))
+        else:
+            cluster_labels = get_cluster_labels(weighted_embeddings, hdbscan_dict, is_first)
 
         # print_hierarchy(weighted_embeddings)
         # print("hi")
         # print(DBCV(weighted_embeddings, cluster_labels, dist_function=euclidean))
-        # if len(np.unique(cluster_labels)) > 1:
-        #     print(silhouette_score(weighted_embeddings, cluster_labels))
+        if len(np.unique(cluster_labels)) > 1:
+            silhoutteDict = storingAndLoading.loadSilhoutte()
+            # print(clusters_to_furthur_split)
+            # print(silhouette_score(weighted_embeddings, cluster_labels))
+            # print("**********************************************")
+            # print(" ")
+            silhoutteDict[str(clusters_to_furthur_split)] = silhouette_score(weighted_embeddings, cluster_labels)
+            storingAndLoading.storeSilhoutte(silhoutteDict)
 
         id_mapping_dict = {v: k for v, k in enumerate(cluster_data[1])}
         list_of_lists = pd.Series(range(len(cluster_labels))).groupby(cluster_labels, sort=True).apply(list).tolist()
@@ -181,11 +197,13 @@ def split_for_3_levels(cluster_embeddings_dict_full, entity_name, weights, paren
                                                                content_pos_weight),
             clusters_to_furthur_split, clusters_to_furthur_split]
 
-        if is_first:
+        if is_first and len(clusters_to_furthur_split) < 1029:
             ids_based_on_labels, cluster_info_for_not_clustered_data = category_split, [0]
+            temp1, temp2 = perform_split(cluster_data, complete_weights,
+                          hdbscan_dict, is_first, clusters_to_furthur_split, category_split)
         else:
             ids_based_on_labels, cluster_info_for_not_clustered_data = perform_split(cluster_data, complete_weights,
-                                                                                     hdbscan_dict, is_first)
+                                                                                     hdbscan_dict, is_first, clusters_to_furthur_split, category_split)
 
         if len(ids_based_on_labels) > 1 and not is_first:
             # print(hdbscan_dict["min_cluster_size"])

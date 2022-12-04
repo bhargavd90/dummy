@@ -10,7 +10,6 @@ from sentence_transformers import SentenceTransformer
 import pandas as pd
 import embeddings
 import pytextrank
-import torch
 from collections import Counter
 from sklearn.metrics.pairwise import cosine_similarity
 import copy
@@ -27,10 +26,6 @@ nlp.add_pipe("textrank")
 
 model_name = 'paraphrase-MiniLM-L3-v2'
 model = SentenceTransformer(model_name)
-print('CUDA Device count', torch.cuda.device_count())
-if torch.cuda.device_count() >= 1:
-    device = torch.device("cuda:0")
-    model.to(device)
 
 
 def get_sentences_from_news(df, news_content, news_publisher_title, title, news_content_WO_preprocssing):
@@ -584,6 +579,59 @@ def remove_one_one_nodes(nodes_edges_main):
     nodes_edges_main["nodes"] = nodes_dict_updated
 
     return nodes_edges_main
+
+
+def get_silhoutte_score_child_labels(nodes_edges_main):
+    nodes = nodes_edges_main["nodes"]
+    cluster_dict = nodes_edges_main["cluster_dict"]
+    cluster_labels_dict = {}
+    cluster_ids = []
+    for node in nodes:
+        if "last" in node:
+            if node["last"]:
+                cluster_ids.append("cluster_" + str(node["id"]))
+    label = 0
+    for cluster_id in cluster_ids:
+        news_article_ids = cluster_dict[cluster_id]
+        for news_article_id in news_article_ids:
+            cluster_labels_dict[news_article_id] = label
+        label = label + 1
+    sorted_dict = dict(sorted(cluster_labels_dict.items()))
+    cluster_labels = np.asarray(list(sorted_dict.values()))
+    return cluster_labels
+
+
+def calculateSilhoutte(nodes_edges_main):
+    node_level_dict = {}
+    cluster_level_dict = {}
+    final_dict = {}
+    nodes = nodes_edges_main["nodes"]
+    cluster_dict = nodes_edges_main["cluster_dict"]
+    silhoutteDict = storingAndLoading.loadSilhoutte()
+
+    for node in nodes:
+        node_level_dict[node["id"]] = node["level"]
+
+    for cluster_no, cluster_data in cluster_dict.items():
+        cluster_id = int(cluster_no.replace("cluster_", ""))
+        try:
+            cluster_level = node_level_dict[cluster_id]
+            cluster_level_dict[str(cluster_data)] = cluster_level
+        except:
+            pass
+
+    for silhoutte_data, silhoutte_score in silhoutteDict.items():
+        silhoutte_level = cluster_level_dict[silhoutte_data]
+        if silhoutte_level in final_dict:
+            try:
+                final_dict[silhoutte_level] = final_dict[silhoutte_level] + [silhoutte_score]
+            except:
+                print("error", silhoutte_level)
+        else:
+            final_dict[silhoutte_level] = [silhoutte_score]
+
+    print(final_dict)
+    return None
 
 # def remove_empty_clusters(related_dict_updated, cluster_dict, nodes_dict_id, nodes_dict, edges_dict_from):
 #     nodes_remove_list = []

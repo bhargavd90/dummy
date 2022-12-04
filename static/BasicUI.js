@@ -720,6 +720,7 @@ var from_date_keyword = '&from_date_keyword=' + document.getElementById("from_da
 var to_date_keyword = '&to_date_keyword=' + document.getElementById("to_date_keyword").value;
 var cluster_method = '&cluster_method=' + document.getElementById("cluster_method_list").value;
 
+alert(content_capture_needed);
 
 setProgress();
 $.ajax({

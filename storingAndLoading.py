@@ -99,10 +99,19 @@ def loadUseFlat():
     with open('resources/useFlat.json', 'rb') as fp:
         return json.load(fp)
 
+def loadSilhoutte():
+    with open('resources/silhoutte.json', 'rb') as fp:
+        return json.load(fp)
+
 
 def storeUseFlat(useFlat):
     with open("resources/useFlat.json", "w") as outfile:
         json.dump(useFlat, outfile, cls=NumpyEncoder)
+
+
+def storeSilhoutte(colorsDict):
+    with open("resources/silhoutte.json", "w") as outfile:
+        json.dump(colorsDict, outfile, cls=NumpyEncoder)
 
 
 def load_ui_parameters():
